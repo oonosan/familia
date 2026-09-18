@@ -1,14 +1,14 @@
-# familia
+# home
 
-Monorepo con las apps privadas de la casa (cumpleaños, gastos, etc.), pensado
-para vivir en `onokaren.com/familia`, detrás de un PIN numérico.
+Monorepo con las apps privadas de la casa (cumpleaños, gastos, etc.), detrás
+de un PIN numérico. Deployado en Netlify y publicado en `home.onokaren.com`.
 
 ## Cómo está armado
 
 - `public/` — la landing: `login.html` (form de PIN) e `index.html` (listado
   de apps, protegido).
 - `netlify/functions/auth.mjs` — valida el PIN contra la variable de entorno
-  `FAMILIA_PIN` y, si coincide, setea una cookie `HttpOnly` de sesión.
+  `HOME_PIN` y, si coincide, setea una cookie `HttpOnly` de sesión.
 - `netlify/edge-functions/gate.js` — corre en cada request; si no hay cookie
   de sesión válida, redirige a `/login.html`. Así nadie llega a una app
   (ni a `index.html`) sin haber puesto el PIN antes.
@@ -24,28 +24,16 @@ puede leerla) y `Secure` (solo viaja por HTTPS).
 
 ## Pasos pendientes (fuera de este repo, a mano)
 
-1. **Crear el sitio en Netlify** apuntando a este repo (build command
-   `npm run build`, publish `dist`, ya quedan seteados en `netlify.toml`).
-2. En Netlify → Site settings → Environment variables, agregar:
-   - `FAMILIA_PIN`: el PIN numérico que van a usar (ej. `4 a 8` dígitos).
-   - `FAMILIA_SESSION_SECRET`: un string random largo (ej. generado con
+1. ~~Crear el sitio en Netlify apuntando a este repo~~ — hecho, deployado en
+   `home.onokaren.com`.
+2. En Netlify → Site configuration → Environment variables, tienen que existir
+   estas dos (scope: Functions + Runtime como mínimo):
+   - `HOME_PIN`: el PIN numérico.
+   - `HOME_SESSION_SECRET`: un string random largo (ej. generado con
      `openssl rand -hex 32`). No es el PIN — es el "secreto" de la cookie.
-3. Copiar la URL que te da Netlify para este sitio (algo como
-   `https://familia-onokaren.netlify.app`).
-4. En el **repo de la web personal** (onokaren.com), agregar una regla de
-   redirect/proxy para que `/familia/*` sirva este sitio sin cambiar la URL
-   visible. En su `netlify.toml` (o archivo `_redirects`):
-
-   ```
-   /familia/*  https://familia-onokaren.netlify.app/:splat  200
-   ```
-
-   (Reemplazar por la URL real del sitio del paso 3. El `200` es clave: hace
-   que sea un proxy/rewrite, no un redirect — la URL en el navegador sigue
-   siendo `onokaren.com/familia/...`.)
-
-   No hace falta tocar GoDaddy para esto — el dominio ya apunta a Netlify
-   para el sitio principal, y ese sitio es el que hace de proxy hacia este.
+3. Después de agregar o cambiar cualquiera de las dos, hay que volver a
+   deployar (Deploys → Trigger deploy → Clear cache and deploy site) para que
+   la function y la edge function la vean.
 
 ## Cómo agregar una app nueva
 

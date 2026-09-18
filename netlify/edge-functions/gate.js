@@ -12,9 +12,9 @@ export default async (request, context) => {
   }
 
   const cookieHeader = request.headers.get("cookie") || "";
-  const match = cookieHeader.match(/(?:^|;\s*)familia_session=([^;]+)/);
+  const match = cookieHeader.match(/(?:^|;\s*)home_session=([^;]+)/);
   const token = match ? match[1] : null;
-  const secret = Deno.env.get("FAMILIA_SESSION_SECRET");
+  const secret = Deno.env.get("HOME_SESSION_SECRET");
 
   if (token && secret && token === secret) {
     return context.next();

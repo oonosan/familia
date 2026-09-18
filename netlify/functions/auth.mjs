@@ -13,11 +13,11 @@ export default async (req) => {
     return new Response("Bad Request", { status: 400 });
   }
 
-  const expectedPin = process.env.FAMILIA_PIN;
-  const secret = process.env.FAMILIA_SESSION_SECRET;
+  const expectedPin = process.env.HOME_PIN;
+  const secret = process.env.HOME_SESSION_SECRET;
 
   if (!expectedPin || !secret) {
-    return new Response("Falta configurar FAMILIA_PIN / FAMILIA_SESSION_SECRET en Netlify", { status: 500 });
+    return new Response("Falta configurar HOME_PIN / HOME_SESSION_SECRET en Netlify", { status: 500 });
   }
 
   if (pin !== expectedPin) {
@@ -28,7 +28,7 @@ export default async (req) => {
   }
 
   const cookie = [
-    `familia_session=${secret}`,
+    `home_session=${secret}`,
     "Path=/",
     "Max-Age=7776000", // 90 días
     "HttpOnly",
