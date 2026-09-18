@@ -1,0 +1,47 @@
+// Datos reales exportados del artefacto original al momento de crear esta app.
+// Se usan solo la primera vez (si no hay nada guardado todavía en este navegador);
+// después, todo se persiste en localStorage y estos datos ya no se vuelven a leer.
+
+export const seedInvitados = [
+  { id: "kejv9n9qh4js9ku1y7b9", nombre: "Mariel", adultos: 1, ninos: 0, estado: "confirmado", nota: "", creado: 1789516910792 },
+  { id: "n6hen035wpl2m1kd0t4i", nombre: "Silvina", adultos: 1, ninos: 0, estado: "confirmado", nota: "", creado: 1789516917385 },
+  { id: "z0afh24bfpc73cyenc7o", nombre: "Enrico", adultos: 2, ninos: 1, estado: "confirmado", nota: "", creado: 1789516925475 },
+  { id: "l0tu0dc48gee96zmz10x", nombre: "Nati", adultos: 2, ninos: 0, estado: "confirmado", nota: "", creado: 1789516942512 },
+  { id: "k1lrkocksfvvmbs67h58", nombre: "Nico Bs As", adultos: 1, ninos: 0, estado: "confirmado", nota: "", creado: 1789516958084 },
+  { id: "dfbh44bo6qkk2i739o7v", nombre: "Nico Rebord", adultos: 2, ninos: 0, estado: "confirmado", nota: "", creado: 1789516964418 },
+  { id: "ysxix55olvh45e0hlstb", nombre: "Tino", adultos: 2, ninos: 2, estado: "confirmado", nota: "", creado: 1789516974122 },
+  { id: "s7dzcalaanjuwv1gp2bh", nombre: "Sebas", adultos: 2, ninos: 2, estado: "confirmado", nota: "", creado: 1789516981784 },
+  { id: "kny5qotu5bu67lwkb6bq", nombre: "Toto", adultos: 2, ninos: 1, estado: "confirmado", nota: "", creado: 1789516987648 },
+  { id: "txwm6gydatkbk9vqago3", nombre: "Hugo", adultos: 1, ninos: 0, estado: "confirmado", nota: "", creado: 1789516908684 },
+  { id: "rqujbxj5ezc2tj0xwez5", nombre: "Karen", adultos: 2, ninos: 1, estado: "confirmado", nota: "", creado: 1789516900037 },
+  { id: "aj3jjs2r87973uxc35z6", nombre: "Facu", adultos: 2, ninos: 0, estado: "confirmado", nota: "", creado: 1789516968851 },
+  { id: "2gfm2b3tzzucw66okbag", nombre: "Negro", adultos: 3, ninos: 0, estado: "confirmado", nota: "", creado: 1789517027851 },
+];
+
+export const seedGastos = [
+  { id: "zjgyjf89173gwxtdixig", concepto: "Alquiler del lugar", categoria: "lugar", monto: 948000, estado: "pendiente", link: "", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 1, unidad: "", creado: 1789517107892 },
+  { id: "pm5of65oesq1u423h2u7", concepto: "Servilletas Cuadrille Rosa", categoria: "vajilla", monto: 7459, estado: "pendiente", link: "https://arg.shein.com/40pcs-Disposable-Lace-Pattern-Napkins-9-84-Inch-Square-3-Ply-Table-Napkins-40pcs-Yellow-Plaid-Tabletop-Napkins-Suitable-For-Birthday-Party-Summer-Party-Wedding-Party-Wedding-Table-Decor-p-442402466.html", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 40, unidad: "", creado: 1789518921111 },
+  { id: "4e6e4xq4t36nfm39av74", concepto: "Servilletas Animales", categoria: "vajilla", monto: 2250, estado: "pendiente", link: "https://aireobjetosdeco.com.ar/productos/servilletas-safari-funny-1g8di/", modo: "fijo", cantidad: 2, porPersona: 1, porPaquete: 12, unidad: "", creado: 1789518949620 },
+  { id: "1v4fd476skmtghfurath", concepto: "Servilletas Cuadrille Verde", categoria: "vajilla", monto: 3710, estado: "pendiente", link: "https://arg.shein.com/25pcs-50pcs-75pcs-2-Ply-Soft-Light-Green-Plaid-Napkins-24cm-24cm-Opened-For-One-Time-Party-Lunch-Guest-Towels-Decorative-Paper-Birthday-Decoration-Wedding-Anniversary-Graduation-Party-Decor-p-441655233.html", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 25, unidad: "", creado: 1789518988212 },
+  { id: "7zzbwr19nidzscivt6fu", concepto: "Servilletas Animales Premium", categoria: "vajilla", monto: 30000, estado: "pendiente", link: "https://www.tiendasmagicas.com/productos/servilletas-party-animals-talking-tables-x-14ph3/", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 1, unidad: "", creado: 1789519015264 },
+  { id: "3fzl39jwwbxgcmilvnkk", concepto: "Cubiertos Rose", categoria: "vajilla", monto: 12000, estado: "pendiente", link: "https://papeleraavellaneda.com/productos/cubiertos-plastic-rose-x18/", modo: "fijo", cantidad: 6, porPersona: 1, porPaquete: 6, unidad: "", creado: 1789519054674 },
+  { id: "x5vzbg6hxcaqpkj27a0q", concepto: "Cubiertos Elegant Rosa", categoria: "vajilla", monto: 24000, estado: "pendiente", link: "https://papeleraavellaneda.com/productos/cubiertos-elegant-rosa-x8/", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 8, unidad: "", creado: 1789519087771 },
+  { id: "2ktormpfdw1jls2hck9l", concepto: "Platos Safari", categoria: "vajilla", monto: 4799, estado: "pendiente", link: "https://aireobjetosdeco.com.ar/productos/platos-safari-x-8/", modo: "fijo", cantidad: 2, porPersona: 1, porPaquete: 8, unidad: "", creado: 1789519110395 },
+  { id: "u2xq9kacfakzemlwm23r", concepto: "Platos animales selva", categoria: "vajilla", monto: 3900, estado: "pendiente", link: "https://www.airesdefiestamagico.com/productos/platos-animales-selva/", modo: "fijo", cantidad: 5, porPersona: 1, porPaquete: 8, unidad: "", creado: 1789524336385 },
+  { id: "o72gkfx1najy8quqs8eo", concepto: "Vasos Safari", categoria: "vajilla", monto: 3299, estado: "pendiente", link: "https://aireobjetosdeco.com.ar/productos/vasos-safari-x-8/", modo: "fijo", cantidad: 2, porPersona: 1, porPaquete: 8, unidad: "", creado: 1789524360346 },
+  { id: "h5guveg1l7misk4wh83z", concepto: "VASOS SAFARI PARTY TALKING TABLES", categoria: "vajilla", monto: 30000, estado: "pendiente", link: "https://www.tiendasmagicas.com/productos/vasos-safari-party-talking-tables-x-8-1o9tv/", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 8, unidad: "", creado: 1789524408749 },
+  { id: "exb0ktut3iktff50ivkp", concepto: "Nena con animales de selva", categoria: "torta", monto: 79900, estado: "pendiente", link: "https://www.cotillonjosefina.com.ar/productos/nena-con-animales-de-selva/", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 1, unidad: "", creado: 1789524427745 },
+  { id: "ay7l7hdpzz50z1uz4j0w", concepto: "VELA LEOPARDO", categoria: "torta", monto: 18000, estado: "pendiente", link: "https://www.tiendasmagicas.com/productos/vela-leopardo-1v033/", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 1, unidad: "", creado: 1789524465512 },
+  { id: "ao67u4ezs80ufstc0iz1", concepto: "Vasos Animales Selva", categoria: "vajilla", monto: 3500, estado: "pendiente", link: "https://www.airesdefiestamagico.com/productos/vasos-animales-selva/", modo: "fijo", cantidad: 5, porPersona: 1, porPaquete: 8, unidad: "", creado: 1789524383180 },
+  { id: "usfhymn5kgjy1u54dlnk", concepto: "Felpa Leopardo", categoria: "deco", monto: 8000, estado: "pendiente", link: "https://papeleraavellaneda.com/productos/animales-de-felpa-leopardo-con-bonete/", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 1, unidad: "", creado: 1789525410611 },
+  { id: "pmgrzwnl3szc8k02fp6j", concepto: "Tigre bebe", categoria: "deco", monto: 8990, estado: "pendiente", link: "https://articulo.mercadolibre.com.ar/MLA-1866642223-adorno-torta-mini-animales-felpa-bosque-granja-cake-topper-_JM", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 1, unidad: "", creado: 1789525427242 },
+  { id: "w4eor1lb5nk86ekoo9bn", concepto: "Felpa Ciervo", categoria: "deco", monto: 8990, estado: "pendiente", link: "https://articulo.mercadolibre.com.ar/MLA-1866642223-adorno-torta-mini-animales-felpa-bosque-granja-cake-topper-_JM", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 1, unidad: "", creado: 1789677201123 },
+  { id: "vl5npygbujbe3m3s51zb", concepto: "Felpa Leon Bebe", categoria: "deco", monto: 8990, estado: "pendiente", link: "https://articulo.mercadolibre.com.ar/MLA-1866642223-adorno-torta-mini-animales-felpa-bosque-granja-cake-topper-_JM", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 1, unidad: "", creado: 1789677179811 },
+  { id: "rc628lpy9kgd1nzuq40g", concepto: "Felpa", categoria: "deco", monto: 8990, estado: "pendiente", link: "https://articulo.mercadolibre.com.ar/MLA-1866642223-adorno-torta-mini-animales-felpa-bosque-granja-cake-topper-_JM", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 1, unidad: "", creado: 1789677035376 },
+  { id: "1l7hipwt1t2fcz1kzst4", concepto: "Felpa Tigre Bebe", categoria: "deco", monto: 8990, estado: "pendiente", link: "https://articulo.mercadolibre.com.ar/MLA-1866642223-adorno-torta-mini-animales-felpa-bosque-granja-cake-topper-_JM", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 1, unidad: "", creado: 1789677258295 },
+  { id: "ft37nu9gxvl8048og22j", concepto: "Felpa Tigre", categoria: "deco", monto: 8990, estado: "pendiente", link: "https://articulo.mercadolibre.com.ar/MLA-1866642223-adorno-torta-mini-animales-felpa-bosque-granja-cake-topper-_JM", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 1, unidad: "", creado: 1789525464260 },
+  { id: "jfwcs513cmx8i4i99rv9", concepto: "Animales de Felpa con bonete", categoria: "deco", monto: 32990, estado: "pendiente", link: "https://www.mercadolibre.com.ar/adorno-torta-selva-bosque-granja-animales-felpa-cake-topper/up/MLAU4290254771", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 5, unidad: "", creado: 1789676830983 },
+  { id: "nb71ufkmrhf9dpburhjq", concepto: "Felpa (3 rino, 5 Hipo, 23 jirafa bebe, 32 mono, 26)", categoria: "deco", monto: 29999, estado: "pendiente", link: "https://www.mercadolibre.com.ar/animales-de-selva-y-bosque-felpa-pack-x6-a-eleccion/up/MLAU211041301", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 6, unidad: "", creado: 1789676578147 },
+];
+
+export const seedConfig = { servilletas: 2, cubiertos: 1, vasos: 1 };
