@@ -6,6 +6,18 @@ import { cpSync, rmSync, mkdirSync } from "node:fs";
 
 const APPS = [
   { dir: "cumple-gaia-react", buildDir: "dist", mountAt: "cumple-gaia" },
+  {
+    dir: "horas-react",
+    buildDir: "dist",
+    mountAt: "sil",
+    env: { VITE_BASE: "/sil/", VITE_WORKER: "sil", VITE_WORKER_NAME: "Sil", VITE_WORKER_RATE: "5000" },
+  },
+  {
+    dir: "horas-react",
+    buildDir: "dist",
+    mountAt: "adri",
+    env: { VITE_BASE: "/adri/", VITE_WORKER: "adri", VITE_WORKER_NAME: "Adri", VITE_WORKER_RATE: "7000" },
+  },
 ];
 
 const root = new URL("..", import.meta.url).pathname.replace(/^\/([a-zA-Z]):/, "$1:");
@@ -17,8 +29,9 @@ cpSync(`${root}/public`, `${root}/dist`, { recursive: true });
 for (const app of APPS) {
   const appPath = `${root}/${app.dir}`;
   console.log(`\n> building ${app.dir}`);
-  execSync("npm install", { cwd: appPath, stdio: "inherit" });
-  execSync("npm run build", { cwd: appPath, stdio: "inherit" });
+  const env = { ...process.env, ...(app.env || {}) };
+  execSync("npm install", { cwd: appPath, stdio: "inherit", env });
+  execSync("npm run build", { cwd: appPath, stdio: "inherit", env });
   cpSync(`${appPath}/${app.buildDir}`, `${root}/dist/${app.mountAt}`, { recursive: true });
 }
 
