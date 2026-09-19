@@ -28,6 +28,22 @@ export function checkOut() {
   return postAction({ action: "checkout", rate: HOURLY_RATE });
 }
 
-export function togglePaid(date, inTime) {
-  return postAction({ action: "togglePaid", date, in: inTime });
+export function togglePaid(id) {
+  return postAction({ action: "togglePaid", id });
+}
+
+export function addManualRecord(date, inTime, outTime) {
+  return postAction({ action: "addManual", date, in: inTime, out: outTime, rate: HOURLY_RATE });
+}
+
+export function editRecord(id, date, inTime, outTime) {
+  return postAction({ action: "editRecord", id, date, in: inTime, out: outTime, rate: HOURLY_RATE });
+}
+
+export function addAbsence(date) {
+  return postAction({ action: "addAbsence", date });
+}
+
+export function deleteRecord(id) {
+  return postAction({ action: "deleteRecord", id });
 }

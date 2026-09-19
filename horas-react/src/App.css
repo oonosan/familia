@@ -6,8 +6,8 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  background: #f4f1ea;
-  color: #2b2620;
+  background: var(--color-bg, #f4f1ea);
+  color: var(--color-text, #2b2620);
 }
 
 .wrap {
@@ -22,8 +22,8 @@ h1 {
 }
 
 .rate {
-  margin: 0 0 1.5rem;
-  color: #6b6353;
+  margin: 0;
+  color: var(--color-muted, #6b6353);
 }
 
 .error {
@@ -57,17 +57,27 @@ h1 {
 }
 
 .btn.checkin {
-  background: #3a6b52;
+  background: var(--color-checkin, #3a6b52);
 }
 
 .btn.checkout {
-  background: #a13e3e;
+  background: var(--color-checkout, #a13e3e);
 }
 
 .active-note {
-  margin: 0 0 1.5rem;
-  color: #3a6b52;
+  margin: 0 0 1rem;
+  color: var(--color-checkin, #3a6b52);
   font-weight: 600;
+}
+
+.unpaid-note {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--color-card, white);
+  border: 1px solid var(--color-checkout, #a13e3e);
+  color: var(--color-checkout, #a13e3e);
+  border-radius: 10px;
+  font-weight: 700;
 }
 
 .month-row {
@@ -82,7 +92,7 @@ h1 {
 .month-row select {
   padding: 0.5rem 0.75rem;
   border-radius: 10px;
-  border: 1px solid #e3ddcf;
+  border: 1px solid var(--color-border, #e3ddcf);
   font-size: 1rem;
 }
 
@@ -93,7 +103,7 @@ h1 {
 table {
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: var(--color-card, white);
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -103,13 +113,13 @@ th,
 td {
   padding: 0.65rem 0.75rem;
   text-align: left;
-  border-bottom: 1px solid #efeade;
+  border-bottom: 1px solid var(--color-border, #efeade);
   font-size: 0.95rem;
 }
 
 th {
-  background: #3a6b52;
-  color: white;
+  background: var(--color-header, #3a6b52);
+  color: var(--color-headerText, white);
   font-weight: 600;
 }
 
@@ -119,7 +129,7 @@ tbody tr:last-child td {
 
 .empty {
   text-align: center;
-  color: #6b6353;
+  color: var(--color-muted, #6b6353);
   padding: 1.5rem;
 }
 
@@ -130,4 +140,106 @@ tbody tr:last-child td {
 .paid-cell input {
   width: 1.2rem;
   height: 1.2rem;
+}
+
+.absence-row td {
+  color: var(--color-muted, #6b6353);
+  font-style: italic;
+}
+
+.absence-label {
+  text-align: center;
+}
+
+.actions-cell {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.icon-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1.05rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 8px;
+}
+
+.icon-btn:hover {
+  background: var(--color-border, #efeade);
+}
+
+.actions-row {
+  margin-bottom: 0.75rem;
+}
+
+.btn-link {
+  border: none;
+  background: none;
+  color: var(--color-link, #3a6b52);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.3rem 0;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.record-form {
+  background: var(--color-card, white);
+  border: 1px solid var(--color-border, #e3ddcf);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.record-form h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.record-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--color-muted, #6b6353);
+}
+
+.record-form input {
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-border, #e3ddcf);
+  font-size: 1rem;
+  color: var(--color-text, #2b2620);
+}
+
+.record-form .checkbox-label {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.record-form .checkbox-label input {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.btn-secondary {
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--color-border, #e3ddcf);
+  background: var(--color-card, white);
+  cursor: pointer;
+  font-weight: 600;
 }
