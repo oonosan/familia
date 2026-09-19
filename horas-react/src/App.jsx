@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { WORKER_NAME, HOURLY_RATE } from "./config";
-import { fetchState, checkIn, checkOut, togglePaid, addManualRecord, editRecord } from "./api";
+import { THEME } from "./theme";
+import {
+  fetchState,
+  checkIn,
+  checkOut,
+  togglePaid,
+  addManualRecord,
+  editRecord,
+  addAbsence,
+  deleteRecord,
+} from "./api";
 
 const currency = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -36,7 +46,7 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-const emptyForm = { id: null, date: "", in: "", out: "" };
+const emptyForm = { id: null, date: "", in: "", out: "", absence: false };
 
 export default function App() {
   const [state, setState] = useState(null);
@@ -74,10 +84,16 @@ export default function App() {
     if (!state || !currentMonth) return [];
     return state.records
       .filter((r) => monthKey(r.date) === currentMonth)
-      .sort((a, b) => (a.date + a.in).localeCompare(b.date + b.in));
+      .sort((a, b) => (b.date + (b.in || "")).localeCompare(a.date + (a.in || "")));
   }, [state, currentMonth]);
 
   const monthTotal = rows.reduce((sum, r) => sum + r.amount, 0);
+
+  const unpaid = useMemo(() => {
+    if (!state) return { count: 0, total: 0 };
+    const pending = state.records.filter((r) => !r.absence && !r.paid);
+    return { count: pending.length, total: pending.reduce((sum, r) => sum + r.amount, 0) };
+  }, [state]);
 
   async function run(action) {
     setBusy(true);
@@ -97,14 +113,23 @@ export default function App() {
   }
 
   function openEditForm(r) {
-    setForm({ id: r.id, date: r.date, in: r.in, out: r.out });
+    setForm({ id: r.id, date: r.date, in: r.in, out: r.out, absence: false });
   }
 
   async function submitForm(e) {
     e.preventDefault();
-    const { id, date, in: inTime, out } = form;
-    await run(() => (id ? editRecord(id, date, inTime, out) : addManualRecord(date, inTime, out)));
+    const { id, date, in: inTime, out, absence } = form;
+    await run(() => {
+      if (absence) return addAbsence(date);
+      return id ? editRecord(id, date, inTime, out) : addManualRecord(date, inTime, out);
+    });
     setForm(null);
+  }
+
+  function handleDelete(r) {
+    const label = r.absence ? `la falta del ${formatDate(r.date)}` : `el registro del ${formatDate(r.date)}`;
+    if (!window.confirm(`¿Eliminar ${label}?`)) return;
+    run(() => deleteRecord(r.id));
   }
 
   if (!state) {
@@ -120,6 +145,12 @@ export default function App() {
 
   return (
     <main className="wrap">
+      <img
+        className="theme-banner"
+        src={THEME.image}
+        alt=""
+        style={{ objectPosition: THEME.bannerPosition }}
+      />
       <h1>{WORKER_NAME}</h1>
       <p className="rate">Hora: {currency.format(HOURLY_RATE)}</p>
 
@@ -145,6 +176,12 @@ export default function App() {
       {active && (
         <p className="active-note">
           Ingresó el {formatDate(active.date)} a las {active.time}
+        </p>
+      )}
+
+      {unpaid.count > 1 && (
+        <p className="unpaid-note">
+          Adeudado ({unpaid.count} registros sin pagar): {currency.format(unpaid.total)}
         </p>
       )}
 
@@ -177,24 +214,41 @@ export default function App() {
               onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
             />
           </label>
-          <label>
-            Ingreso
-            <input
-              type="time"
-              required
-              value={form.in}
-              onChange={(e) => setForm((f) => ({ ...f, in: e.target.value }))}
-            />
-          </label>
-          <label>
-            Salida
-            <input
-              type="time"
-              required
-              value={form.out}
-              onChange={(e) => setForm((f) => ({ ...f, out: e.target.value }))}
-            />
-          </label>
+
+          {!form.id && (
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={form.absence}
+                onChange={(e) => setForm((f) => ({ ...f, absence: e.target.checked }))}
+              />
+              Faltó (no trabajó ese día)
+            </label>
+          )}
+
+          {!form.absence && (
+            <>
+              <label>
+                Ingreso
+                <input
+                  type="time"
+                  required
+                  value={form.in}
+                  onChange={(e) => setForm((f) => ({ ...f, in: e.target.value }))}
+                />
+              </label>
+              <label>
+                Salida
+                <input
+                  type="time"
+                  required
+                  value={form.out}
+                  onChange={(e) => setForm((f) => ({ ...f, out: e.target.value }))}
+                />
+              </label>
+            </>
+          )}
+
           <div className="form-actions">
             <button type="submit" className="btn checkin" disabled={busy}>
               Guardar
@@ -226,27 +280,46 @@ export default function App() {
               </td>
             </tr>
           )}
-          {rows.map((r) => (
-            <tr key={r.id}>
-              <td>{formatDate(r.date)}</td>
-              <td>{r.in}</td>
-              <td>{r.out}</td>
-              <td>{r.hours.toFixed(2)}</td>
-              <td>{currency.format(r.amount)}</td>
-              <td className="paid-cell">
-                <input
-                  type="checkbox"
-                  checked={r.paid}
-                  onChange={() => run(() => togglePaid(r.id))}
-                />
-              </td>
-              <td className="actions-cell">
-                <button type="button" className="icon-btn" title="Editar" onClick={() => openEditForm(r)}>
-                  ✏️
-                </button>
-              </td>
-            </tr>
-          ))}
+          {rows.map((r) =>
+            r.absence ? (
+              <tr key={r.id} className="absence-row">
+                <td>{formatDate(r.date)}</td>
+                <td colSpan={3} className="absence-label">
+                  Faltó
+                </td>
+                <td>—</td>
+                <td className="paid-cell">—</td>
+                <td className="actions-cell">
+                  <button type="button" className="icon-btn" title="Eliminar" onClick={() => handleDelete(r)}>
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+            ) : (
+              <tr key={r.id}>
+                <td>{formatDate(r.date)}</td>
+                <td>{r.in}</td>
+                <td>{r.out}</td>
+                <td>{r.hours.toFixed(2)}</td>
+                <td>{currency.format(r.amount)}</td>
+                <td className="paid-cell">
+                  <input
+                    type="checkbox"
+                    checked={r.paid}
+                    onChange={() => run(() => togglePaid(r.id))}
+                  />
+                </td>
+                <td className="actions-cell">
+                  <button type="button" className="icon-btn" title="Editar" onClick={() => openEditForm(r)}>
+                    ✏️
+                  </button>
+                  <button type="button" className="icon-btn" title="Eliminar" onClick={() => handleDelete(r)}>
+                    🗑️
+                  </button>
+                </td>
+              </tr>
+            )
+          )}
         </tbody>
       </table>
     </main>

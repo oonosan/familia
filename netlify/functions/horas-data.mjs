@@ -64,6 +64,20 @@ export default async (req) => {
         return new Response("La salida debe ser después del ingreso", { status: 400 });
       }
       state.records.push(makeRecord(body.date, body.in, body.out, hours, rate));
+    } else if (body.action === "addAbsence") {
+      if (!isValidDate(body.date)) {
+        return new Response("Fecha inválida", { status: 400 });
+      }
+      state.records.push({
+        id: randomUUID(),
+        date: body.date,
+        in: null,
+        out: null,
+        hours: 0,
+        amount: 0,
+        paid: true,
+        absence: true,
+      });
     } else if (body.action === "editRecord") {
       const rec = state.records.find((r) => r.id === body.id);
       if (!rec) {
@@ -88,6 +102,12 @@ export default async (req) => {
         return new Response("Registro no encontrado", { status: 404 });
       }
       rec.paid = !rec.paid;
+    } else if (body.action === "deleteRecord") {
+      const exists = state.records.some((r) => r.id === body.id);
+      if (!exists) {
+        return new Response("Registro no encontrado", { status: 404 });
+      }
+      state.records = state.records.filter((r) => r.id !== body.id);
     } else {
       return new Response("Acción desconocida", { status: 400 });
     }

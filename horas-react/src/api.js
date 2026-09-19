@@ -39,3 +39,11 @@ export function addManualRecord(date, inTime, outTime) {
 export function editRecord(id, date, inTime, outTime) {
   return postAction({ action: "editRecord", id, date, in: inTime, out: outTime, rate: HOURLY_RATE });
 }
+
+export function addAbsence(date) {
+  return postAction({ action: "addAbsence", date });
+}
+
+export function deleteRecord(id) {
+  return postAction({ action: "deleteRecord", id });
+}
