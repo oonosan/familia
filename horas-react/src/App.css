@@ -1,0 +1,133 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #f4f1ea;
+  color: #2b2620;
+}
+
+.wrap {
+  width: min(720px, 100%);
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin: 0 0 0.25rem;
+}
+
+.rate {
+  margin: 0 0 1.5rem;
+  color: #6b6353;
+}
+
+.error {
+  background: #fde3e3;
+  color: #8a1f1f;
+  padding: 0.6rem 0.9rem;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.checkbar {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.btn {
+  flex: 1;
+  padding: 0.9rem 1rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: white;
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn.checkin {
+  background: #3a6b52;
+}
+
+.btn.checkout {
+  background: #a13e3e;
+}
+
+.active-note {
+  margin: 0 0 1.5rem;
+  color: #3a6b52;
+  font-weight: 600;
+}
+
+.month-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.month-row select {
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #e3ddcf;
+  font-size: 1rem;
+}
+
+.month-total {
+  font-weight: 700;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+th,
+td {
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #efeade;
+  font-size: 0.95rem;
+}
+
+th {
+  background: #3a6b52;
+  color: white;
+  font-weight: 600;
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.empty {
+  text-align: center;
+  color: #6b6353;
+  padding: 1.5rem;
+}
+
+.paid-cell {
+  text-align: center;
+}
+
+.paid-cell input {
+  width: 1.2rem;
+  height: 1.2rem;
+}

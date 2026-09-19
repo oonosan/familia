@@ -14,9 +14,17 @@ de un PIN numérico. Deployado en Netlify y publicado en `home.onokaren.com`.
   (ni a `index.html`) sin haber puesto el PIN antes.
 - `cumple-gaia-react/` — la primera app (ya existía), sin cambios funcionales
   salvo que ahora buildea con `base: /cumple-gaia/` para vivir en esa subruta.
+- `horas-react/` — registro de horas y pagos de Sil (niñera) y Adri (limpieza).
+  Es una sola app que se buildea dos veces con distintas env vars
+  (`VITE_WORKER`, `VITE_WORKER_NAME`, `VITE_WORKER_RATE`, `VITE_BASE`) para
+  vivir en `/sil/` y `/adri/` con su propio nombre y tarifa. Los datos
+  (check-in/check-out, horas y pagado) se guardan en Netlify Blobs vía
+  `netlify/functions/horas-data.mjs`, un store separado por trabajadora
+  (`horas-sil`, `horas-adri`) — nada se guarda en localStorage.
 - `scripts/build.mjs` — arma `dist/` copiando `public/` y el build de cada
   app hija a su subcarpeta. Para sumar una app nueva, agregarla a la lista
-  `APPS` en ese script.
+  `APPS` en ese script (opcionalmente con `env` si la app necesita variables
+  de build distintas, como `horas-react`).
 
 El PIN nunca queda en el código ni en el repo: vive solo como variable de
 entorno en Netlify. La cookie de sesión es `HttpOnly` (JS del browser no
