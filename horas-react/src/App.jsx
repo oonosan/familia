@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { WORKER_NAME, HOURLY_RATE } from "./config";
-import { THEME } from "./theme";
 import {
   fetchState,
   checkIn,
@@ -145,12 +144,6 @@ export default function App() {
 
   return (
     <main className="wrap">
-      <img
-        className="theme-banner"
-        src={THEME.image}
-        alt=""
-        style={{ objectPosition: THEME.bannerPosition }}
-      />
       <h1>{WORKER_NAME}</h1>
       <p className="rate">Hora: {currency.format(HOURLY_RATE)}</p>
 

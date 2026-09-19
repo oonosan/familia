@@ -7,7 +7,7 @@ import { WORKER_ID } from "./config";
 const THEMES = {
   sil: {
     image: silImage,
-    bannerPosition: "center top",
+    bgPosition: "center top",
     colors: {
       bg: "#fdeaf0",
       card: "#ffffff",
@@ -23,7 +23,7 @@ const THEMES = {
   },
   adri: {
     image: adriImage,
-    bannerPosition: "center 40%",
+    bgPosition: "center 40%",
     colors: {
       bg: "#f8e1cd",
       card: "#ffffff",
