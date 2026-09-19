@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { WORKER_NAME, HOURLY_RATE } from "./config";
-import { fetchState, checkIn, checkOut, togglePaid } from "./api";
+import { fetchState, checkIn, checkOut, togglePaid, addManualRecord, editRecord } from "./api";
 
 const currency = new Intl.NumberFormat("es-AR", {
   style: "currency",
@@ -32,11 +32,18 @@ function todayKey() {
   return monthKey(new Date().toISOString().slice(0, 10));
 }
 
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+const emptyForm = { id: null, date: "", in: "", out: "" };
+
 export default function App() {
   const [state, setState] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [month, setMonth] = useState(null);
+  const [form, setForm] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -83,6 +90,21 @@ export default function App() {
     } finally {
       setBusy(false);
     }
+  }
+
+  function openAddForm() {
+    setForm({ ...emptyForm, date: todayISO() });
+  }
+
+  function openEditForm(r) {
+    setForm({ id: r.id, date: r.date, in: r.in, out: r.out });
+  }
+
+  async function submitForm(e) {
+    e.preventDefault();
+    const { id, date, in: inTime, out } = form;
+    await run(() => (id ? editRecord(id, date, inTime, out) : addManualRecord(date, inTime, out)));
+    setForm(null);
   }
 
   if (!state) {
@@ -137,6 +159,53 @@ export default function App() {
         <span className="month-total">Total del mes: {currency.format(monthTotal)}</span>
       </div>
 
+      <div className="actions-row">
+        <button type="button" className="btn-link" onClick={openAddForm}>
+          + Agregar registro
+        </button>
+      </div>
+
+      {form && (
+        <form className="record-form" onSubmit={submitForm}>
+          <h2>{form.id ? "Editar registro" : "Agregar registro"}</h2>
+          <label>
+            Fecha
+            <input
+              type="date"
+              required
+              value={form.date}
+              onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
+            />
+          </label>
+          <label>
+            Ingreso
+            <input
+              type="time"
+              required
+              value={form.in}
+              onChange={(e) => setForm((f) => ({ ...f, in: e.target.value }))}
+            />
+          </label>
+          <label>
+            Salida
+            <input
+              type="time"
+              required
+              value={form.out}
+              onChange={(e) => setForm((f) => ({ ...f, out: e.target.value }))}
+            />
+          </label>
+          <div className="form-actions">
+            <button type="submit" className="btn checkin" disabled={busy}>
+              Guardar
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => setForm(null)}>
+              Cancelar
+            </button>
+          </div>
+        </form>
+      )}
+
       <table>
         <thead>
           <tr>
@@ -146,18 +215,19 @@ export default function App() {
             <th>Horas</th>
             <th>Total</th>
             <th>Pagado</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           {rows.length === 0 && (
             <tr>
-              <td colSpan={6} className="empty">
+              <td colSpan={7} className="empty">
                 Sin registros este mes
               </td>
             </tr>
           )}
           {rows.map((r) => (
-            <tr key={r.date + r.in}>
+            <tr key={r.id}>
               <td>{formatDate(r.date)}</td>
               <td>{r.in}</td>
               <td>{r.out}</td>
@@ -167,8 +237,13 @@ export default function App() {
                 <input
                   type="checkbox"
                   checked={r.paid}
-                  onChange={() => run(() => togglePaid(r.date, r.in))}
+                  onChange={() => run(() => togglePaid(r.id))}
                 />
+              </td>
+              <td className="actions-cell">
+                <button type="button" className="icon-btn" title="Editar" onClick={() => openEditForm(r)}>
+                  ✏️
+                </button>
               </td>
             </tr>
           ))}

@@ -131,3 +131,84 @@ tbody tr:last-child td {
   width: 1.2rem;
   height: 1.2rem;
 }
+
+.actions-cell {
+  text-align: center;
+}
+
+.icon-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1.05rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 8px;
+}
+
+.icon-btn:hover {
+  background: #efeade;
+}
+
+.actions-row {
+  margin-bottom: 0.75rem;
+}
+
+.btn-link {
+  border: none;
+  background: none;
+  color: #3a6b52;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 0.3rem 0;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.record-form {
+  background: white;
+  border: 1px solid #e3ddcf;
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.record-form h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.record-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+  color: #6b6353;
+}
+
+.record-form input {
+  padding: 0.5rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #e3ddcf;
+  font-size: 1rem;
+  color: #2b2620;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.btn-secondary {
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #e3ddcf;
+  background: white;
+  cursor: pointer;
+  font-weight: 600;
+}
