@@ -13,7 +13,7 @@ export default async (req) => {
     return new Response("Unknown worker", { status: 400 });
   }
 
-  const store = getStore(`horas-${worker}`);
+  const store = getStore({ name: `horas-${worker}`, consistency: "strong" });
   const KEY = "state";
 
   if (req.method === "GET") {
@@ -166,7 +166,7 @@ function isValidTime(s) {
 function json(data) {
   return new Response(JSON.stringify(data), {
     status: 200,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", "cache-control": "no-store" },
   });
 }
 
