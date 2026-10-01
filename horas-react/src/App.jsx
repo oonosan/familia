@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { WORKER_NAME, HOURLY_RATE } from "./config";
+import TimePicker from "./TimePicker";
 import {
   fetchState,
   checkIn,
+  cancelCheckIn,
   checkOut,
   togglePaid,
   addManualRecord,
@@ -19,8 +21,18 @@ const currency = new Intl.NumberFormat("es-AR", {
 
 const POLL_MS = 20000;
 
+function pad(n) {
+  return String(n).padStart(2, "0");
+}
+
 function monthKey(dateStr) {
   return dateStr.slice(0, 7); // "YYYY-MM"
+}
+
+function shiftMonth(key, delta) {
+  const [y, m] = key.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
 }
 
 function monthLabel(key) {
@@ -37,15 +49,12 @@ function formatDate(dateStr) {
   return `${d}/${m}/${y}`;
 }
 
-function todayKey() {
-  return monthKey(new Date().toISOString().slice(0, 10));
-}
-
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-const emptyForm = { id: null, date: "", in: "", out: "", absence: false };
+const emptyForm = { id: null, date: "", in: "", out: "", absence: false, error: null };
 
 export default function App() {
   const [state, setState] = useState(null);
@@ -73,14 +82,16 @@ export default function App() {
   const months = useMemo(() => {
     if (!state) return [];
     const keys = new Set(state.records.map((r) => monthKey(r.date)));
-    keys.add(todayKey());
+    keys.add(monthKey(todayISO()));
     return [...keys].sort().reverse();
   }, [state]);
 
-  const currentMonth = month && months.includes(month) ? month : months[0];
+  const currentMonth = month || monthKey(todayISO());
+  const newestMonth = months[0];
+  const oldestMonth = months[months.length - 1];
 
   const rows = useMemo(() => {
-    if (!state || !currentMonth) return [];
+    if (!state) return [];
     return state.records
       .filter((r) => monthKey(r.date) === currentMonth)
       .sort((a, b) => (b.date + (b.in || "")).localeCompare(a.date + (a.in || "")));
@@ -94,14 +105,37 @@ export default function App() {
     return { count: pending.length, total: pending.reduce((sum, r) => sum + r.amount, 0) };
   }, [state]);
 
+  const history = useMemo(() => {
+    if (!state) return [];
+    const byMonth = new Map();
+    for (const r of state.records) {
+      const key = monthKey(r.date);
+      const entry = byMonth.get(key) || { key, days: 0, absences: 0, hours: 0, total: 0, pending: 0 };
+      if (r.absence) {
+        entry.absences += 1;
+      } else {
+        entry.days += 1;
+        entry.hours += r.hours;
+        entry.total += r.amount;
+        if (!r.paid) entry.pending += r.amount;
+      }
+      byMonth.set(key, entry);
+    }
+    return [...byMonth.values()].sort((a, b) => b.key.localeCompare(a.key));
+  }, [state]);
+
+  const historyTotal = history.reduce((sum, h) => sum + h.total, 0);
+
   async function run(action) {
     setBusy(true);
     setError(null);
     try {
       const data = await action();
       setState(data);
+      return true;
     } catch (e) {
       setError(e.message);
+      return false;
     } finally {
       setBusy(false);
     }
@@ -112,17 +146,33 @@ export default function App() {
   }
 
   function openEditForm(r) {
-    setForm({ id: r.id, date: r.date, in: r.in, out: r.out, absence: false });
+    setForm({ ...emptyForm, id: r.id, date: r.date, in: r.in, out: r.out });
   }
 
   async function submitForm(e) {
     e.preventDefault();
     const { id, date, in: inTime, out, absence } = form;
-    await run(() => {
+    if (!absence && (!inTime || !out)) {
+      setForm((f) => ({ ...f, error: "Elegí la hora de ingreso y de salida." }));
+      return;
+    }
+    if (!absence && out <= inTime) {
+      setForm((f) => ({ ...f, error: "La salida tiene que ser después del ingreso." }));
+      return;
+    }
+    const ok = await run(() => {
       if (absence) return addAbsence(date);
       return id ? editRecord(id, date, inTime, out) : addManualRecord(date, inTime, out);
     });
-    setForm(null);
+    if (ok) {
+      setMonth(monthKey(date));
+      setForm(null);
+    }
+  }
+
+  function handleCancelCheckIn() {
+    if (!window.confirm(`¿Cancelar el check-in de las ${state.activeCheckIn.time}? No se va a guardar ningún registro.`)) return;
+    run(cancelCheckIn);
   }
 
   function handleDelete(r) {
@@ -150,18 +200,10 @@ export default function App() {
       {error && <p className="error">{error}</p>}
 
       <div className="checkbar">
-        <button
-          className="btn checkin"
-          disabled={busy || !!active}
-          onClick={() => run(checkIn)}
-        >
+        <button className="btn checkin" disabled={busy || !!active} onClick={() => run(checkIn)}>
           Check in
         </button>
-        <button
-          className="btn checkout"
-          disabled={busy || !active}
-          onClick={() => run(checkOut)}
-        >
+        <button className="btn checkout" disabled={busy || !active} onClick={() => run(checkOut)}>
           Check out
         </button>
       </div>
@@ -169,6 +211,9 @@ export default function App() {
       {active && (
         <p className="active-note">
           Ingresó el {formatDate(active.date)} a las {active.time}
+          <button type="button" className="btn-link cancel-checkin" disabled={busy} onClick={handleCancelCheckIn}>
+            Cancelar check-in
+          </button>
         </p>
       )}
 
@@ -178,16 +223,28 @@ export default function App() {
         </p>
       )}
 
-      <div className="month-row">
-        <select value={currentMonth || ""} onChange={(e) => setMonth(e.target.value)}>
-          {months.map((k) => (
-            <option key={k} value={k}>
-              {monthLabel(k)}
-            </option>
-          ))}
-        </select>
-        <span className="month-total">Total del mes: {currency.format(monthTotal)}</span>
+      <div className="month-nav">
+        <button
+          type="button"
+          className="month-arrow"
+          aria-label="Mes anterior"
+          disabled={currentMonth <= oldestMonth}
+          onClick={() => setMonth(shiftMonth(currentMonth, -1))}
+        >
+          ‹
+        </button>
+        <span className="month-label">{monthLabel(currentMonth)}</span>
+        <button
+          type="button"
+          className="month-arrow"
+          aria-label="Mes siguiente"
+          disabled={currentMonth >= newestMonth}
+          onClick={() => setMonth(shiftMonth(currentMonth, 1))}
+        >
+          ›
+        </button>
       </div>
+      <p className="month-total">Total del mes: {currency.format(monthTotal)}</p>
 
       <div className="actions-row">
         <button type="button" className="btn-link" onClick={openAddForm}>
@@ -213,34 +270,28 @@ export default function App() {
               <input
                 type="checkbox"
                 checked={form.absence}
-                onChange={(e) => setForm((f) => ({ ...f, absence: e.target.checked }))}
+                onChange={(e) => setForm((f) => ({ ...f, absence: e.target.checked, error: null }))}
               />
               Faltó (no trabajó ese día)
             </label>
           )}
 
           {!form.absence && (
-            <>
-              <label>
-                Ingreso
-                <input
-                  type="time"
-                  required
-                  value={form.in}
-                  onChange={(e) => setForm((f) => ({ ...f, in: e.target.value }))}
-                />
-              </label>
-              <label>
-                Salida
-                <input
-                  type="time"
-                  required
-                  value={form.out}
-                  onChange={(e) => setForm((f) => ({ ...f, out: e.target.value }))}
-                />
-              </label>
-            </>
+            <div className="time-row">
+              <TimePicker
+                label="Ingreso"
+                value={form.in}
+                onChange={(v) => setForm((f) => ({ ...f, in: v, error: null }))}
+              />
+              <TimePicker
+                label="Salida"
+                value={form.out}
+                onChange={(v) => setForm((f) => ({ ...f, out: v, error: null }))}
+              />
+            </div>
           )}
+
+          {form.error && <p className="form-error">{form.error}</p>}
 
           <div className="form-actions">
             <button type="submit" className="btn checkin" disabled={busy}>
@@ -253,6 +304,7 @@ export default function App() {
         </form>
       )}
 
+      <div className="table-scroll">
       <table>
         <thead>
           <tr>
@@ -296,11 +348,7 @@ export default function App() {
                 <td>{r.hours.toFixed(2)}</td>
                 <td>{currency.format(r.amount)}</td>
                 <td className="paid-cell">
-                  <input
-                    type="checkbox"
-                    checked={r.paid}
-                    onChange={() => run(() => togglePaid(r.id))}
-                  />
+                  <input type="checkbox" checked={r.paid} onChange={() => run(() => togglePaid(r.id))} />
                 </td>
                 <td className="actions-cell">
                   <button type="button" className="icon-btn" title="Editar" onClick={() => openEditForm(r)}>
@@ -315,6 +363,59 @@ export default function App() {
           )}
         </tbody>
       </table>
+      </div>
+
+      <section className="history">
+        <h2>Historial mensual</h2>
+        {history.length === 0 ? (
+          <p className="empty">Todavía no hay registros.</p>
+        ) : (
+          <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Mes</th>
+                <th>Días</th>
+                <th>Horas</th>
+                <th>Total</th>
+                <th>Pendiente</th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.map((h) => (
+                <tr
+                  key={h.key}
+                  className={`history-row${h.key === currentMonth ? " current" : ""}`}
+                  onClick={() => setMonth(h.key)}
+                >
+                  <td>{monthLabel(h.key)}</td>
+                  <td>
+                    {h.days}
+                    {h.absences > 0 && (
+                      <span className="history-absences">
+                        {" "}
+                        ({h.absences} {h.absences === 1 ? "falta" : "faltas"})
+                      </span>
+                    )}
+                  </td>
+                  <td>{h.hours.toFixed(2)}</td>
+                  <td>{currency.format(h.total)}</td>
+                  <td className={h.pending > 0 ? "pending" : ""}>
+                    {h.pending > 0 ? currency.format(h.pending) : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan={3}>Total</td>
+                <td colSpan={2}>{currency.format(historyTotal)}</td>
+              </tr>
+            </tfoot>
+          </table>
+          </div>
+        )}
+      </section>
     </main>
   );
 }

@@ -15,13 +15,17 @@ async function postAction(body) {
 }
 
 export async function fetchState() {
-  const res = await fetch(`${ENDPOINT}?worker=${WORKER_ID}`);
+  const res = await fetch(`${ENDPOINT}?worker=${WORKER_ID}`, { cache: "no-store" });
   if (!res.ok) throw new Error("No se pudo cargar el estado");
   return res.json();
 }
 
 export function checkIn() {
   return postAction({ action: "checkin" });
+}
+
+export function cancelCheckIn() {
+  return postAction({ action: "cancelCheckin" });
 }
 
 export function checkOut() {
