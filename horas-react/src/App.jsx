@@ -4,6 +4,7 @@ import TimePicker from "./TimePicker";
 import {
   fetchState,
   checkIn,
+  cancelCheckIn,
   checkOut,
   togglePaid,
   addManualRecord,
@@ -169,6 +170,11 @@ export default function App() {
     }
   }
 
+  function handleCancelCheckIn() {
+    if (!window.confirm(`¿Cancelar el check-in de las ${state.activeCheckIn.time}? No se va a guardar ningún registro.`)) return;
+    run(cancelCheckIn);
+  }
+
   function handleDelete(r) {
     const label = r.absence ? `la falta del ${formatDate(r.date)}` : `el registro del ${formatDate(r.date)}`;
     if (!window.confirm(`¿Eliminar ${label}?`)) return;
@@ -205,6 +211,9 @@ export default function App() {
       {active && (
         <p className="active-note">
           Ingresó el {formatDate(active.date)} a las {active.time}
+          <button type="button" className="btn-link cancel-checkin" disabled={busy} onClick={handleCancelCheckIn}>
+            Cancelar check-in
+          </button>
         </p>
       )}
 

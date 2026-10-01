@@ -36,8 +36,12 @@ export default async (req) => {
       if (state.activeCheckIn) {
         return new Response("Ya hay un check-in abierto", { status: 409 });
       }
-      const now = new Date();
-      state.activeCheckIn = { date: toDateStr(now), time: toTimeStr(now) };
+      state.activeCheckIn = nowInArgentina();
+    } else if (body.action === "cancelCheckin") {
+      if (!state.activeCheckIn) {
+        return new Response("No hay check-in abierto", { status: 409 });
+      }
+      state.activeCheckIn = null;
     } else if (body.action === "checkout") {
       if (!state.activeCheckIn) {
         return new Response("No hay check-in abierto", { status: 409 });
@@ -47,10 +51,13 @@ export default async (req) => {
         return new Response("Rate inválida", { status: 400 });
       }
       const { date, time: inTime } = state.activeCheckIn;
-      const outTime = toTimeStr(new Date());
+      const outTime = nowInArgentina().time;
       const hours = diffHoursFromTimes(inTime, outTime);
       if (hours == null) {
-        return new Response("La salida debe ser después del ingreso", { status: 400 });
+        return new Response(
+          "Pasó menos de un minuto desde el check-in. Si fue un error, usá «Cancelar check-in».",
+          { status: 400 }
+        );
       }
       state.records.push(makeRecord(date, inTime, outTime, hours, rate));
       state.activeCheckIn = null;
@@ -170,12 +177,22 @@ function json(data) {
   });
 }
 
-function toDateStr(d) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function toTimeStr(d) {
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+// La función corre en UTC; las horas se registran en hora de Argentina.
+function nowInArgentina() {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Argentina/Buenos_Aires",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(new Date())
+      .map((p) => [p.type, p.value])
+  );
+  return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
 }
 
 function diffHoursFromTimes(inTime, outTime) {

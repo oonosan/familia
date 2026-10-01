@@ -24,6 +24,10 @@ export function checkIn() {
   return postAction({ action: "checkin" });
 }
 
+export function cancelCheckIn() {
+  return postAction({ action: "cancelCheckin" });
+}
+
 export function checkOut() {
   return postAction({ action: "checkout", rate: HOURLY_RATE });
 }
