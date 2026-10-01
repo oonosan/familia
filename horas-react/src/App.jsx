@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { WORKER_NAME, HOURLY_RATE } from "./config";
+import { WORKER_NAME } from "./config";
 import TimePicker from "./TimePicker";
 import {
   fetchState,
@@ -110,12 +110,21 @@ export default function App() {
     const byMonth = new Map();
     for (const r of state.records) {
       const key = monthKey(r.date);
-      const entry = byMonth.get(key) || { key, days: 0, absences: 0, hours: 0, total: 0, pending: 0 };
+      const entry = byMonth.get(key) || {
+        key,
+        days: 0,
+        absences: 0,
+        hours: 0,
+        rates: new Set(),
+        total: 0,
+        pending: 0,
+      };
       if (r.absence) {
         entry.absences += 1;
       } else {
         entry.days += 1;
         entry.hours += r.hours;
+        if (r.rate != null) entry.rates.add(r.rate);
         entry.total += r.amount;
         if (!r.paid) entry.pending += r.amount;
       }
@@ -195,7 +204,6 @@ export default function App() {
   return (
     <main className="wrap">
       <h1>{WORKER_NAME}</h1>
-      <p className="rate">Hora: {currency.format(HOURLY_RATE)}</p>
 
       {error && <p className="error">{error}</p>}
 
@@ -377,6 +385,7 @@ export default function App() {
                 <th>Mes</th>
                 <th>Días</th>
                 <th>Horas</th>
+                <th>Valor hora</th>
                 <th>Total</th>
                 <th>Pendiente</th>
               </tr>
@@ -399,6 +408,11 @@ export default function App() {
                     )}
                   </td>
                   <td>{h.hours.toFixed(2)}</td>
+                  <td>
+                    {h.rates.size > 0
+                      ? [...h.rates].sort((a, b) => a - b).map((rate) => currency.format(rate)).join(" / ")
+                      : "—"}
+                  </td>
                   <td>{currency.format(h.total)}</td>
                   <td className={h.pending > 0 ? "pending" : ""}>
                     {h.pending > 0 ? currency.format(h.pending) : "—"}
@@ -408,7 +422,7 @@ export default function App() {
             </tbody>
             <tfoot>
               <tr>
-                <td colSpan={3}>Total</td>
+                <td colSpan={4}>Total</td>
                 <td colSpan={2}>{currency.format(historyTotal)}</td>
               </tr>
             </tfoot>

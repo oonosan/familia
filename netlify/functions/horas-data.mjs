@@ -98,11 +98,15 @@ export default async (req) => {
       if (hours == null) {
         return new Response("La salida debe ser después del ingreso", { status: 400 });
       }
+      // Se mantiene el valor de hora con el que se creó el registro, así un
+      // aumento posterior no cambia lo ya trabajado.
+      const recRate = rec.rate ?? rate;
       rec.date = body.date;
       rec.in = body.in;
       rec.out = body.out;
       rec.hours = round2(hours);
-      rec.amount = round2(hours * rate);
+      rec.rate = recRate;
+      rec.amount = round2(hours * recRate);
     } else if (body.action === "togglePaid") {
       const rec = state.records.find((r) => r.id === body.id);
       if (!rec) {
@@ -137,6 +141,15 @@ function migrate(state) {
       r.id = randomUUID();
       changed = true;
     }
+    // Registros viejos no guardaban el valor de hora: se deduce del monto y
+    // de las horas exactas (el monto está redondeado a centavos).
+    if (!r.absence && r.rate == null && r.in && r.out) {
+      const exact = diffHoursFromTimes(r.in, r.out);
+      if (exact) {
+        r.rate = Math.round(r.amount / exact);
+        changed = true;
+      }
+    }
   }
   return { state, changed };
 }
@@ -148,6 +161,7 @@ function makeRecord(date, inTime, outTime, exactHours, rate) {
     in: inTime,
     out: outTime,
     hours: round2(exactHours),
+    rate,
     amount: round2(exactHours * rate),
     paid: false,
   };
