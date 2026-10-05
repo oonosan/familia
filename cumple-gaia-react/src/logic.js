@@ -116,18 +116,44 @@ export function unidadesCompradas(g, personas) {
   return c.cantidad * porPaquete;
 }
 
-// Detecta si un gasto es de servilletas, cubiertos o vasos por su nombre.
+// Detecta si un gasto es de platos, servilletas, cubiertos o vasos por su nombre.
+// Los platos se separan en almuerzo y torta: manda lo elegido a mano
+// (g.usoPlato); si no, se adivina por el nombre (torta, postre, chico, lunch...).
 const VJ_TIPOS = [
+  ["platos", /\bplat(o|os|ito|itos)\b/i],
   ["servilletas", /servillet/i],
   ["cubiertos", /cubiert|tenedor|cuchara|cuchillo/i],
   ["vasos", /\bvasos?\b/i],
 ];
-export function tipoVajilla(concepto) {
-  const texto = concepto || "";
-  for (const [tipo, re] of VJ_TIPOS) if (re.test(texto)) return tipo;
+const RE_PLATO_TORTA = /torta|postre|lunch|chic|peque|dessert|cake|platito/i;
+
+export function usoPlato(g) {
+  if (g.usoPlato === "torta" || g.usoPlato === "almuerzo") return g.usoPlato;
+  return RE_PLATO_TORTA.test(g.concepto || "") ? "torta" : "almuerzo";
+}
+
+export function tipoVajilla(g) {
+  const texto = g.concepto || "";
+  for (const [tipo, re] of VJ_TIPOS) {
+    if (!re.test(texto)) continue;
+    if (tipo === "platos") return usoPlato(g) === "torta" ? "platosTorta" : "platosAlmuerzo";
+    return tipo;
+  }
   return null;
 }
-export const VJ_ETIQUETA = { servilletas: "Servilletas", cubiertos: "Cubiertos", vasos: "Vasos" };
+
+export const VJ_ETIQUETA = {
+  platosAlmuerzo: "Platos del almuerzo",
+  platosTorta: "Platos de torta",
+  servilletas: "Servilletas",
+  cubiertos: "Cubiertos",
+  vasos: "Vasos",
+};
+
+export const VJ_TIP = {
+  platosAlmuerzo: "Descartables: 1,2 por persona deja margen por si alguno se moja o se rompe, o alguien repite.",
+  platosTorta: "Platitos más chicos (tipo postre, ~18 cm), aparte de los del almuerzo: 1 por persona.",
+};
 
 export function countdownTexto() {
   const target = new Date(2026, 9, 18);

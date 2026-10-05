@@ -44,4 +44,4 @@ export const seedGastos = [
   { id: "nb71ufkmrhf9dpburhjq", concepto: "Felpa (3 rino, 5 Hipo, 23 jirafa bebe, 32 mono, 26)", categoria: "deco", monto: 29999, estado: "pendiente", link: "https://www.mercadolibre.com.ar/animales-de-selva-y-bosque-felpa-pack-x6-a-eleccion/up/MLAU211041301", modo: "fijo", cantidad: 1, porPersona: 1, porPaquete: 6, unidad: "", creado: 1789676578147 },
 ];
 
-export const seedConfig = { servilletas: 2, cubiertos: 1, vasos: 1 };
+export const seedConfig = { platosAlmuerzo: 1.2, platosTorta: 1, servilletas: 2, cubiertos: 1, vasos: 1 };
