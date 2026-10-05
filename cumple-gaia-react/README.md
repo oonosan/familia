@@ -41,7 +41,7 @@ de datos compartida) — cada navegador tiene su propia copia.
 - `src/components/Hero.jsx` — portada con la imagen de la selva.
 - `src/components/Invitados.jsx` — alta y lista de invitados, contador de adultos/niños confirmados.
 - `src/components/Gastos.jsx` + `EditorGasto.jsx` — alta, lista y edición de gastos (con cantidad por paquete, precio por unidad, link de compra).
-- `src/components/Alcanza.jsx` — resumen de servilletas/cubiertos/vasos comprados vs. sugeridos.
+- `src/components/Alcanza.jsx` — resumen de platos (almuerzo y torta por separado), servilletas, cubiertos y vasos comprados vs. sugeridos.
 - `src/logic.js` — todos los cálculos (cantidades, precios, detección de vajilla) sin nada de UI.
 - `src/useCarousel.js` — el hook que maneja scroll con mouse/trackpad/touch y transiciones entre pantallas.
 - `src/usePersisted.js` — estado global + persistencia en localStorage.

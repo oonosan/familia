@@ -50,7 +50,7 @@ export default function App() {
 
           <section className="pane" id="pane-3" ref={registerPane(3)} tabIndex={-1}>
             <div className="wrap">
-              <Alcanza invitados={invitados} gastos={gastos} config={config} guardarConfig={guardarConfig} />
+              <Alcanza invitados={invitados} gastos={gastos} config={config} guardarConfig={guardarConfig} patchGasto={patchGasto} />
               <footer>Gaia · 18 de octubre · cumple y bautismo</footer>
             </div>
           </section>
