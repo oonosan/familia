@@ -21,6 +21,13 @@ de un PIN numérico. Deployado en Netlify y publicado en `home.onokaren.com`.
   (check-in/check-out, horas y pagado) se guardan en Netlify Blobs vía
   `netlify/functions/horas-data.mjs`, un store separado por trabajadora
   (`horas-sil`, `horas-adri`) — nada se guarda en localStorage.
+- `nutricion-gaia-react/` — registro de alimentación de Gaia: calendario
+  semanal de comidas (desayuno, almuerzo, merienda, cena, colaciones y
+  mamadera), pruebas de alimentos nuevos de a uno cada 3 días, registro de
+  reacciones y un catálogo de alimentos típicos argentinos por grupo, con
+  nutrientes, efecto astringente/laxante y alérgenos (`src/foods.js`). Los
+  datos se guardan en Netlify Blobs (store `nutricion-gaia`) vía
+  `netlify/functions/nutricion-data.mjs`.
 - `scripts/build.mjs` — arma `dist/` copiando `public/` y el build de cada
   app hija a su subcarpeta. Para sumar una app nueva, agregarla a la lista
   `APPS` en ese script (opcionalmente con `env` si la app necesita variables
