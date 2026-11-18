@@ -273,15 +273,7 @@ export default function App() {
                     </ul>
                   </div>
                 ))}
-                <button
-                  className="btn ghost full"
-                  disabled={busy}
-                  onClick={() => {
-                    if (window.confirm(`¿Sacar de la lista los ${done.length} comprados?`)) run(clearDone);
-                  }}
-                >
-                  Vaciar comprados
-                </button>
+                <ClearDone count={done.length} busy={busy} onConfirm={() => run(clearDone)} />
               </section>
             )}
           </>
@@ -394,5 +386,42 @@ function EditRow({ item, busy, onSave, onCancel }) {
         </div>
       </form>
     </li>
+  );
+}
+
+// "Vaciar comprados" con confirmación en la misma página (sin
+// window.confirm, que algunos navegadores bloquean y devuelve "no" sin
+// mostrar nada).
+function ClearDone({ count, busy, onConfirm }) {
+  const [asking, setAsking] = useState(false);
+
+  if (!asking) {
+    return (
+      <button className="btn ghost full" disabled={busy} onClick={() => setAsking(true)}>
+        Vaciar comprados
+      </button>
+    );
+  }
+
+  return (
+    <div className="confirm">
+      <p>
+        ¿Sacar de la lista {count === 1 ? "el producto comprado" : `los ${count} productos comprados`}?
+      </p>
+      <div className="confirm-actions">
+        <button className="btn ghost" onClick={() => setAsking(false)}>
+          Cancelar
+        </button>
+        <button
+          className="btn danger"
+          disabled={busy}
+          onClick={async () => {
+            if (await onConfirm()) setAsking(false);
+          }}
+        >
+          Sí, vaciar
+        </button>
+      </div>
+    </div>
   );
 }
