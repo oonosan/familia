@@ -2,16 +2,40 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { addItem, clearDone, fetchState, forget, removeItem, toggleItem, updateItem } from "./api";
 import { CATEGORIES, categoryOf, entryKey } from "./categories";
 import AddForm from "./AddForm";
+import Catalog from "./Catalog";
 import { CategoryArt, CategoryTag } from "./ui";
 
 const POLL_MS = 15000;
 const SUGGESTIONS = 14;
+
+const TABS = [
+  { id: "lista", label: "Lista" },
+  { id: "productos", label: "Productos" },
+];
+
+function tabFromHash() {
+  const id = window.location.hash.slice(1);
+  return TABS.some((t) => t.id === id) ? id : "lista";
+}
 
 export default function App() {
   const [state, setState] = useState(null);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [tab, setTab] = useState(tabFromHash);
+
+  useEffect(() => {
+    const onHash = () => setTab(tabFromHash());
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
+  function goTo(id) {
+    window.location.hash = id;
+    setTab(id);
+    window.scrollTo({ top: 0 });
+  }
 
   const load = useCallback(async () => {
     try {
@@ -65,7 +89,7 @@ export default function App() {
         ...c,
         items: pending.filter((i) => categoryOf(i.category).id === c.id),
       })).filter((g) => g.items.length > 0),
-    [pending]
+    [pending],
   );
 
   const suggestions = useMemo(() => {
@@ -96,138 +120,167 @@ export default function App() {
 
   return (
     <>
-      <Header count={pending.length} />
+      <Header count={pending.length} tab={tab} onTab={goTo} />
       <main className="page">
         {error && <div className="card error">{error}</div>}
 
-        <AddForm
-          history={state.history}
-          pending={pending}
-          busy={busy}
-          onAdd={(name, qty, category) => run(() => addItem(name, qty, category))}
-        />
-
-        {suggestions.length > 0 && (
-          <section className="suggestions">
-            <h2>Lo de siempre</h2>
-            <div className="chips">
-              {suggestions.map((s) => {
-                const cat = categoryOf(s.category);
-                return (
-                  <span
-                    key={`${s.category}|${s.name}`}
-                    className="chip"
-                    style={{ "--cat": cat.color, "--cat-soft": cat.soft }}
-                  >
-                    <button
-                      className="chip-add"
-                      disabled={busy}
-                      onClick={() => run(() => addItem(s.name, "", s.category))}
-                      title={`Agregar ${s.name} (${cat.label})`}
-                    >
-                      <span className="chip-dot" aria-hidden="true" />+ {s.name}
-                    </button>
-                    <button
-                      className="chip-forget"
-                      disabled={busy}
-                      onClick={() => run(() => forget(s.name, s.category))}
-                      aria-label={`Sacar ${s.name} de las sugerencias`}
-                      title="Sacar de las sugerencias"
-                    >
-                      ×
-                    </button>
-                  </span>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
-        {pending.length === 0 ? (
-          <div className="card empty">
-            <span className="empty-emoji">🧺</span>
-            {done.length > 0 ? "¡Listo! Ya está todo en el changuito." : "La lista está vacía. Anotá lo que haga falta."}
-          </div>
+        {tab === "productos" ? (
+          <Catalog
+            history={state.history}
+            pending={pending}
+            busy={busy}
+            onAdd={(name, qty, category) => run(() => addItem(name, qty, category))}
+          />
         ) : (
-          <div className="groups">
-            {groups.map((g) => (
-              <section key={g.id} className="group" style={{ "--cat": g.color, "--cat-soft": g.soft }}>
-                <header className="group-head">
-                  <CategoryArt category={g} />
-                  <h2 className="group-title">{g.label}</h2>
-                  <span className="badge">{g.items.length}</span>
-                </header>
-                <ul className="items">
-                  {g.items.map((item) =>
-                    editingId === item.id ? (
-                      <EditRow
-                        key={item.id}
-                        item={item}
-                        busy={busy}
-                        onCancel={() => setEditingId(null)}
-                        onSave={async (name, qty, category) => {
-                          if (await run(() => updateItem(item.id, name, qty, category))) setEditingId(null);
-                        }}
-                      />
-                    ) : (
-                      <ItemRow
-                        key={item.id}
-                        item={item}
-                        busy={busy}
-                        onToggle={() => toggle(item.id)}
-                        onEdit={() => setEditingId(item.id)}
-                        onRemove={() => run(() => removeItem(item.id))}
-                      />
-                    )
-                  )}
-                </ul>
-              </section>
-            ))}
-          </div>
-        )}
+          <>
+            <AddForm
+              history={state.history}
+              pending={pending}
+              busy={busy}
+              onAdd={(name, qty, category) => run(() => addItem(name, qty, category))}
+            />
 
-        {done.length > 0 && (
-          <section className="card done-group">
-            <h2>
-              <span aria-hidden="true">✅</span> En el changuito
-              <span className="badge">{done.length}</span>
-            </h2>
-            <ul className="items">
-              {done.map((item) => (
-                <ItemRow
-                  key={item.id}
-                  item={item}
-                  busy={busy}
-                  showCategory
-                  onToggle={() => toggle(item.id)}
-                  onRemove={() => run(() => removeItem(item.id))}
-                />
-              ))}
-            </ul>
-            <button
-              className="btn ghost full"
-              disabled={busy}
-              onClick={() => {
-                if (window.confirm(`¿Sacar de la lista los ${done.length} comprados?`)) run(clearDone);
-              }}
-            >
-              Vaciar comprados
-            </button>
-          </section>
+            {suggestions.length > 0 && (
+              <section className="suggestions">
+                <h2>Lo de siempre</h2>
+                <div className="chips">
+                  {suggestions.map((s) => {
+                    const cat = categoryOf(s.category);
+                    return (
+                      <span
+                        key={`${s.category}|${s.name}`}
+                        className="chip"
+                        style={{ "--cat": cat.color, "--cat-soft": cat.soft }}
+                      >
+                        <button
+                          className="chip-add"
+                          disabled={busy}
+                          onClick={() => run(() => addItem(s.name, "", s.category))}
+                          title={`Agregar ${s.name} (${cat.label})`}
+                        >
+                          <span className="chip-dot" aria-hidden="true" />+ {s.name}
+                        </button>
+                        <button
+                          className="chip-forget"
+                          disabled={busy}
+                          onClick={() => run(() => forget(s.name, s.category))}
+                          aria-label={`Sacar ${s.name} de las sugerencias`}
+                          title="Sacar de las sugerencias"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {pending.length === 0 ? (
+              <div className="card empty">
+                <span className="empty-emoji">🧺</span>
+                {done.length > 0
+                  ? "¡Listo! Ya está todo en el changuito."
+                  : "La lista está vacía. Anotá lo que haga falta."}
+              </div>
+            ) : (
+              <div className="groups">
+                {groups.map((g) => (
+                  <section key={g.id} className="group" style={{ "--cat": g.color, "--cat-soft": g.soft }}>
+                    <header className="group-head">
+                      <CategoryArt category={g} />
+                      <h2 className="group-title">{g.label}</h2>
+                      <span className="badge">{g.items.length}</span>
+                    </header>
+                    <ul className="items">
+                      {g.items.map((item) =>
+                        editingId === item.id ? (
+                          <EditRow
+                            key={item.id}
+                            item={item}
+                            busy={busy}
+                            onCancel={() => setEditingId(null)}
+                            onSave={async (name, qty, category) => {
+                              if (await run(() => updateItem(item.id, name, qty, category))) setEditingId(null);
+                            }}
+                          />
+                        ) : (
+                          <ItemRow
+                            key={item.id}
+                            item={item}
+                            busy={busy}
+                            onToggle={() => toggle(item.id)}
+                            onEdit={() => setEditingId(item.id)}
+                            onRemove={() => run(() => removeItem(item.id))}
+                          />
+                        ),
+                      )}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+            )}
+
+            {done.length > 0 && (
+              <section className="card done-group">
+                <h2>
+                  <span aria-hidden="true">✅</span> En el changuito
+                  <span className="badge">{done.length}</span>
+                </h2>
+                <ul className="items">
+                  {done.map((item) => (
+                    <ItemRow
+                      key={item.id}
+                      item={item}
+                      busy={busy}
+                      showCategory
+                      onToggle={() => toggle(item.id)}
+                      onRemove={() => run(() => removeItem(item.id))}
+                    />
+                  ))}
+                </ul>
+                <button
+                  className="btn ghost full"
+                  disabled={busy}
+                  onClick={() => {
+                    if (window.confirm(`¿Sacar de la lista los ${done.length} comprados?`)) run(clearDone);
+                  }}
+                >
+                  Vaciar comprados
+                </button>
+              </section>
+            )}
+          </>
         )}
       </main>
     </>
   );
 }
 
-function Header({ count }) {
+function Header({ count, tab, onTab }) {
   return (
     <header className="top">
-      <a className="back" href="/" aria-label="Volver al inicio">
-        ‹
-      </a>
-      <h1>🛒 Lista de compras</h1>
-      {count > 0 && <span className="top-count">{count} por comprar</span>}
+      <div className="top-row">
+        <a className="back" href="/" aria-label="Volver al inicio">
+          ‹
+        </a>
+        <h1>🛒 Lista de compras</h1>
+        {count > 0 && <span className="top-count">{count} por comprar</span>}
+      </div>
+      {onTab && (
+        <nav className="tabs" aria-label="Secciones">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              className={`tab ${tab === t.id ? "is-active" : ""}`}
+              aria-current={tab === t.id ? "page" : undefined}
+              onClick={() => onTab(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </nav>
+      )}
     </header>
   );
 }
@@ -278,8 +331,22 @@ function EditRow({ item, busy, onSave, onCancel }) {
         }}
       >
         <div className="add-row">
-          <input className="add-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} aria-label="Producto" autoFocus />
-          <input className="add-qty" value={qty} onChange={(e) => setQty(e.target.value)} maxLength={30} placeholder="Cant." aria-label="Cantidad" />
+          <input
+            className="add-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={80}
+            aria-label="Producto"
+            autoFocus
+          />
+          <input
+            className="add-qty"
+            value={qty}
+            onChange={(e) => setQty(e.target.value)}
+            maxLength={30}
+            placeholder="Cant."
+            aria-label="Cantidad"
+          />
         </div>
         <div className="add-row">
           <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Categoría">

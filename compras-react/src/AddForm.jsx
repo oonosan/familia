@@ -1,5 +1,5 @@
 import { useId, useMemo, useRef, useState } from "react";
-import { CATALOG, CATEGORIES, categoryOf, entryKey, normalize } from "./categories";
+import { CATEGORIES, allEntries, categoryOf, entryKey, normalize } from "./categories";
 import { CategoryArt, CategoryTag } from "./ui";
 
 const MAX_OPTIONS = 8;
@@ -17,16 +17,7 @@ export default function AddForm({ history, pending, busy, onAdd }) {
   const inputRef = useRef(null);
   const listId = useId();
 
-  // Catálogo + historial, sin repetir (el historial gana: trae cómo se
-  // escribió y cuántas veces se anotó).
-  const entries = useMemo(() => {
-    const map = new Map();
-    for (const c of CATALOG) map.set(entryKey(c.name, c.category), { ...c, count: 0 });
-    for (const h of Object.values(history)) {
-      map.set(entryKey(h.name, h.category), { name: h.name, category: h.category, count: h.count });
-    }
-    return [...map.values()].map((e) => ({ ...e, norm: normalize(e.name) }));
-  }, [history]);
+  const entries = useMemo(() => allEntries(history), [history]);
 
   const onList = useMemo(() => new Set(pending.map((i) => entryKey(i.name, i.category))), [pending]);
 
@@ -50,7 +41,12 @@ export default function AddForm({ history, pending, busy, onAdd }) {
 
   const exact = options.filter((o) => o.norm === query);
   const isNew = query.length > 0 && exact.length === 0;
-  const showList = open && options.length > 0 && !picking;
+  // El desplegable aparece siempre que haya algo escrito: además de las
+  // coincidencias, la última fila permite agregar lo escrito eligiendo la
+  // sección (aunque no haya ninguna coincidencia).
+  const showList = open && query.length > 0 && !picking;
+  const rows = options.length + 1;
+  const addRow = options.length;
 
   function reset() {
     setName("");
@@ -66,14 +62,14 @@ export default function AddForm({ history, pending, busy, onAdd }) {
   }
 
   function onKeyDown(e) {
-    if (e.key === "ArrowDown" && options.length) {
+    if (e.key === "ArrowDown" && query) {
       e.preventDefault();
       setOpen(true);
-      setActive((a) => (a + 1) % options.length);
-    } else if (e.key === "ArrowUp" && options.length) {
+      setActive((a) => (a + 1) % rows);
+    } else if (e.key === "ArrowUp" && query) {
       e.preventDefault();
       setOpen(true);
-      setActive((a) => (a <= 0 ? options.length - 1 : a - 1));
+      setActive((a) => (a <= 0 ? rows - 1 : a - 1));
     } else if (e.key === "Escape") {
       setOpen(false);
       setPicking(false);
@@ -81,7 +77,8 @@ export default function AddForm({ history, pending, busy, onAdd }) {
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (busy) return;
-      if (showList && active >= 0) add(options[active].name, options[active].category);
+      if (showList && active === addRow) setPicking(true);
+      else if (showList && active >= 0) add(options[active].name, options[active].category);
       else if (exact.length === 1) add(exact[0].name, exact[0].category);
       else if (isNew) setPicking(true);
       else setOpen(true);
@@ -142,16 +139,25 @@ export default function AddForm({ history, pending, busy, onAdd }) {
                   </li>
                 );
               })}
-              {/* Por si existe pero en otra sección (ej. algo fresco que
-                  el catálogo solo tiene en el freezer). */}
+              {/* Agregar lo escrito tal cual: si no existe, o si existe pero
+                  se quiere en otra sección (ej. algo fresco que el catálogo
+                  solo tiene en el freezer). */}
               <li
-                className="combo-other"
+                id={`${listId}-${addRow}`}
+                role="option"
+                aria-selected={active === addRow}
+                className={`combo-other ${options.length === 0 ? "is-only" : ""} ${active === addRow ? "is-active" : ""}`}
                 onMouseDown={(e) => {
                   e.preventDefault();
                   setPicking(true);
                 }}
+                onMouseEnter={() => setActive(addRow)}
               >
-                + Agregar «{name.trim()}» en otra sección…
+                <span>
+                  + Agregar <strong>«{name.trim()}»</strong>
+                  {isNew ? "" : " en otra sección"}
+                </span>
+                <span className="combo-hint">elegir sección</span>
               </li>
             </ul>
           )}

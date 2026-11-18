@@ -1,7 +1,7 @@
 :root {
-  --bg: #fbf7f0;
+  --bg: #fdfcfa;
   --card: #ffffff;
-  --border: #ece4d6;
+  --border: #eee8de;
   --text: #33302b;
   --muted: #7a7266;
   --green: #3a6b52;
@@ -48,13 +48,25 @@ select {
   position: sticky;
   top: 0;
   z-index: 10;
+  padding: calc(0.6rem + env(safe-area-inset-top)) 1rem 0.6rem;
+  background: rgba(255, 255, 255, 0.68);
+  -webkit-backdrop-filter: blur(16px) saturate(170%);
+  backdrop-filter: blur(16px) saturate(170%);
+  border-bottom: 1px solid rgba(60, 50, 30, 0.08);
+  box-shadow: 0 6px 24px -18px rgba(60, 50, 30, 0.5);
+  color: var(--text);
+}
+
+.top-row,
+.tabs {
+  width: min(880px, 100%);
+  margin: 0 auto;
+}
+
+.top-row {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: calc(0.75rem + env(safe-area-inset-top)) 1rem 0.75rem;
-  background: var(--green);
-  color: white;
-  box-shadow: 0 4px 14px -8px rgba(0, 0, 0, 0.4);
+  gap: 0.5rem;
 }
 
 .top h1 {
@@ -65,25 +77,56 @@ select {
 }
 
 .back {
-  color: white;
+  color: var(--text);
   text-decoration: none;
   font-size: 1.8rem;
   line-height: 1;
-  padding: 0 0.35rem 0.15rem;
+  padding: 0 0.4rem 0.15rem;
   border-radius: 10px;
 }
 
 .back:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(60, 50, 30, 0.07);
 }
 
 .top-count {
   font-size: 0.85rem;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.18);
-  padding: 0.2rem 0.6rem;
+  color: var(--green-dark);
+  background: rgba(58, 107, 82, 0.12);
+  padding: 0.2rem 0.65rem;
   border-radius: 999px;
   white-space: nowrap;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.55rem;
+  padding: 0.25rem;
+  background: rgba(60, 50, 30, 0.06);
+  border-radius: 12px;
+}
+
+.tab {
+  flex: 1;
+  border: 0;
+  border-radius: 9px;
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab.is-active {
+  background: white;
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(60, 50, 30, 0.15);
 }
 
 /* ---------- Página ---------- */
@@ -329,14 +372,23 @@ select:focus {
 .combo-other {
   margin-top: 0.2rem;
   border-top: 1px dashed var(--border);
-  border-radius: 0 0 10px 10px;
-  color: var(--muted);
-  font-size: 0.9rem;
+  color: var(--green-dark);
+  font-size: 0.95rem;
 }
 
-.combo-other:hover {
-  background: #f5efe4;
-  color: var(--text);
+.combo-other.is-only {
+  margin-top: 0;
+  border-top: 0;
+}
+
+.combo-other.is-active {
+  background: var(--green-soft);
+}
+
+.combo-hint {
+  flex: none;
+  font-size: 0.75rem;
+  color: var(--muted);
 }
 
 /* ---------- Alta: elegir sección ---------- */
@@ -582,4 +634,56 @@ select:focus {
 
 .done-group {
   background: #fdfbf7;
+}
+
+/* ---------- Pestaña Productos ---------- */
+
+.small {
+  font-size: 0.85rem;
+}
+
+.catalog-search {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.catalog-search p {
+  margin: 0 0.2rem;
+}
+
+.catalog-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.85rem 1rem 1rem;
+}
+
+.catalog-chip {
+  border: 1px solid var(--cat-soft);
+  background: white;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.catalog-chip span {
+  color: var(--cat);
+  font-weight: 800;
+}
+
+.catalog-chip:not(:disabled):hover {
+  border-color: var(--cat);
+  background: var(--cat-soft);
+}
+
+.catalog-chip.is-added {
+  background: var(--cat-soft);
+  color: var(--muted);
+  cursor: default;
+}
+
+.catalog-chip:disabled:not(.is-added) {
+  opacity: 0.6;
 }

@@ -94,3 +94,15 @@ export function normalize(s) {
 export function entryKey(name, category) {
   return `${category}|${normalize(name)}`;
 }
+
+// Catálogo + historial, sin repetir (el historial gana: trae cómo se
+// escribió y cuántas veces se anotó). Cada entrada lleva su nombre
+// normalizado en `norm` para buscar.
+export function allEntries(history) {
+  const map = new Map();
+  for (const c of CATALOG) map.set(entryKey(c.name, c.category), { ...c, count: 0 });
+  for (const h of Object.values(history)) {
+    map.set(entryKey(h.name, h.category), { name: h.name, category: h.category, count: h.count });
+  }
+  return [...map.values()].map((e) => ({ ...e, norm: normalize(e.name) }));
+}
