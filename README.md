@@ -21,6 +21,17 @@ de un PIN numérico. Deployado en Netlify y publicado en `home.onokaren.com`.
   (check-in/check-out, horas y pagado) se guardan en Netlify Blobs vía
   `netlify/functions/horas-data.mjs`, un store separado por trabajadora
   (`horas-sil`, `horas-adri`) — nada se guarda en localStorage.
+- `compras-react/` — lista de compras compartida de la casa (`/compras/`),
+  separada por secciones (frutas y verduras, heladera, carnicería, freezer,
+  alacena, snacks, limpieza, aseo personal, Gaia, huevos y bebidas), cada una
+  con su color e ilustración. Al escribir, un autocompletar sugiere productos
+  del catálogo (`src/categories.js`) y del historial con su sección al lado
+  (el mismo producto puede estar en dos, ej. patamuslo fresco o del freezer);
+  lo que no está se agrega eligiendo la sección. Los datos se guardan en
+  Netlify Blobs (store `compras`) vía `netlify/functions/compras-data.mjs`.
+  Las ilustraciones (`src/assets/categorias/`) se generaron con
+  `node scripts/generar-imagenes.mjs`, que usa la API de Gemini con la
+  `GEMINI_API_KEY` del `.env` de la raíz (requiere facturación activa).
 - `scripts/build.mjs` — arma `dist/` copiando `public/` y el build de cada
   app hija a su subcarpeta. Para sumar una app nueva, agregarla a la lista
   `APPS` en ese script (opcionalmente con `env` si la app necesita variables
