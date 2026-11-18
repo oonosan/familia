@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { addItem, clearDone, fetchState, forget, removeItem, toggleItem, updateItem } from "./api";
+import { addItem, addProduct, clearDone, fetchState, forget, removeItem, toggleItem, updateItem } from "./api";
 import { CATEGORIES, categoryOf, entryKey } from "./categories";
 import AddForm from "./AddForm";
 import Catalog from "./Catalog";
@@ -7,6 +7,19 @@ import { CategoryArt, CategoryTag } from "./ui";
 
 const POLL_MS = 15000;
 const SUGGESTIONS = 14;
+
+// "miércoles 18 de noviembre", en hora de Argentina.
+const DAY_FORMAT = new Intl.DateTimeFormat("es-AR", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  timeZone: "America/Argentina/Buenos_Aires",
+});
+
+function formatDay(iso) {
+  const parts = Object.fromEntries(DAY_FORMAT.formatToParts(new Date(iso)).map((p) => [p.type, p.value]));
+  return `${parts.weekday} ${parts.day} de ${parts.month}`;
+}
 
 const TABS = [
   { id: "lista", label: "Lista" },
@@ -83,6 +96,18 @@ export default function App() {
   const pending = useMemo(() => (state ? state.items.filter((i) => !i.done) : []), [state]);
   const done = useMemo(() => (state ? state.items.filter((i) => i.done) : []), [state]);
 
+  // Lo comprado, agrupado por el día en que se tildó (más nuevo primero).
+  const doneByDay = useMemo(() => {
+    const sorted = [...done].sort((a, b) => (b.doneAt || "").localeCompare(a.doneAt || ""));
+    const days = [];
+    for (const item of sorted) {
+      const label = item.doneAt ? formatDay(item.doneAt) : "";
+      if (days.at(-1)?.label === label) days.at(-1).items.push(item);
+      else days.push({ label, items: [item] });
+    }
+    return days;
+  }, [done]);
+
   const groups = useMemo(
     () =>
       CATEGORIES.map((c) => ({
@@ -95,10 +120,13 @@ export default function App() {
   const suggestions = useMemo(() => {
     if (!state) return [];
     const onList = new Set(pending.map((i) => entryKey(i.name, i.category)));
-    return Object.values(state.history)
-      .filter((h) => !onList.has(entryKey(h.name, h.category)))
-      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
-      .slice(0, SUGGESTIONS);
+    return (
+      Object.values(state.history)
+        // count 0: productos sumados al catálogo que nunca se anotaron.
+        .filter((h) => h.count > 0 && !onList.has(entryKey(h.name, h.category)))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
+        .slice(0, SUGGESTIONS)
+    );
   }, [state, pending]);
 
   if (!state) {
@@ -130,6 +158,7 @@ export default function App() {
             pending={pending}
             busy={busy}
             onAdd={(name, qty, category) => run(() => addItem(name, qty, category))}
+            onAddProduct={(name, category) => run(() => addProduct(name, category))}
           />
         ) : (
           <>
@@ -200,8 +229,8 @@ export default function App() {
                             item={item}
                             busy={busy}
                             onCancel={() => setEditingId(null)}
-                            onSave={async (name, qty, category) => {
-                              if (await run(() => updateItem(item.id, name, qty, category))) setEditingId(null);
+                            onSave={async (qty, category) => {
+                              if (await run(() => updateItem(item.id, qty, category))) setEditingId(null);
                             }}
                           />
                         ) : (
@@ -227,18 +256,23 @@ export default function App() {
                   <span aria-hidden="true">✅</span> En el changuito
                   <span className="badge">{done.length}</span>
                 </h2>
-                <ul className="items">
-                  {done.map((item) => (
-                    <ItemRow
-                      key={item.id}
-                      item={item}
-                      busy={busy}
-                      showCategory
-                      onToggle={() => toggle(item.id)}
-                      onRemove={() => run(() => removeItem(item.id))}
-                    />
-                  ))}
-                </ul>
+                {doneByDay.map((day) => (
+                  <div key={day.label} className="done-day">
+                    {day.label && <h3 className="done-date">{day.label}</h3>}
+                    <ul className="items">
+                      {day.items.map((item) => (
+                        <ItemRow
+                          key={item.id}
+                          item={item}
+                          busy={busy}
+                          showCategory
+                          onToggle={() => toggle(item.id)}
+                          onRemove={() => run(() => removeItem(item.id))}
+                        />
+                      ))}
+                    </ul>
+                  </div>
+                ))}
                 <button
                   className="btn ghost full"
                   disabled={busy}
@@ -316,8 +350,9 @@ function ItemRow({ item, busy, showCategory, onToggle, onEdit, onRemove }) {
   );
 }
 
+// Edición de un ítem: cantidad y sección. El nombre no se cambia (para
+// otro producto, se borra y se agrega el nuevo).
 function EditRow({ item, busy, onSave, onCancel }) {
-  const [name, setName] = useState(item.name);
   const [qty, setQty] = useState(item.qty);
   const [category, setCategory] = useState(categoryOf(item.category).id);
 
@@ -327,39 +362,33 @@ function EditRow({ item, busy, onSave, onCancel }) {
         className="edit-form"
         onSubmit={(e) => {
           e.preventDefault();
-          if (name.trim()) onSave(name.trim(), qty.trim(), category);
+          onSave(qty.trim(), category);
         }}
       >
-        <div className="add-row">
+        <p className="edit-name">{item.name}</p>
+        <div className="edit-fields">
           <input
-            className="add-name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={80}
-            aria-label="Producto"
-            autoFocus
-          />
-          <input
-            className="add-qty"
+            className="edit-qty"
             value={qty}
             onChange={(e) => setQty(e.target.value)}
             maxLength={30}
-            placeholder="Cant."
+            placeholder="Cantidad"
             aria-label="Cantidad"
+            autoFocus
           />
-        </div>
-        <div className="add-row">
-          <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Categoría">
+          <select value={category} onChange={(e) => setCategory(e.target.value)} aria-label="Sección">
             {CATEGORIES.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.emoji} {c.label}
               </option>
             ))}
           </select>
+        </div>
+        <div className="edit-actions">
           <button type="button" className="btn ghost" onClick={onCancel}>
             Cancelar
           </button>
-          <button type="submit" className="btn primary" disabled={busy || !name.trim()}>
+          <button type="submit" className="btn primary" disabled={busy}>
             Guardar
           </button>
         </div>

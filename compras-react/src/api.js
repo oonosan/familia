@@ -19,7 +19,8 @@ export async function fetchState() {
 }
 
 export const addItem = (name, qty, category) => postAction({ action: "add", name, qty, category });
-export const updateItem = (id, name, qty, category) => postAction({ action: "update", id, name, qty, category });
+export const updateItem = (id, qty, category) => postAction({ action: "update", id, qty, category });
+export const addProduct = (name, category) => postAction({ action: "addProduct", name, category });
 export const toggleItem = (id) => postAction({ action: "toggle", id });
 export const removeItem = (id) => postAction({ action: "remove", id });
 export const clearDone = () => postAction({ action: "clearDone" });

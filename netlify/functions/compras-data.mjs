@@ -23,10 +23,11 @@ const CATEGORIES = new Set([
   "gaia",
   "huevos",
   "bebidas",
+  "mascotas",
   "otros",
 ]);
 const MAX_ITEMS = 300;
-const MAX_HISTORY = 200;
+const MAX_HISTORY = 500;
 
 export default async (req) => {
   const store = getStore({ name: "compras", consistency: "strong" });
@@ -76,23 +77,38 @@ export default async (req) => {
       trimHistory(state);
       break;
     }
+    // Editar un ítem de la lista: cantidad y sección. El nombre no se
+    // cambia (para otro producto se borra y se agrega el nuevo).
     case "update": {
       const item = state.items.find((i) => i.id === body.id);
       if (!item) return notFound();
-      if (!isText(body.name, 80) || !CATEGORIES.has(body.category) || (body.qty && !isText(body.qty, 30))) {
+      if (!CATEGORIES.has(body.category) || (body.qty && !isText(body.qty, 30))) {
         return bad("Datos inválidos");
       }
-      item.name = body.name.trim();
       item.qty = body.qty ? body.qty.trim() : "";
-      item.category = body.category;
-      const key = entryKey(item.name, item.category);
-      state.history[key] = { name: item.name, category: item.category, count: state.history[key]?.count || 1 };
+      if (item.category !== body.category) {
+        item.category = body.category;
+        const key = entryKey(item.name, item.category);
+        if (!state.history[key]) state.history[key] = { name: item.name, category: item.category, count: 1 };
+      }
+      break;
+    }
+    // Sumar un producto al catálogo de una sección sin agregarlo a la lista.
+    case "addProduct": {
+      if (!isText(body.name, 80) || !CATEGORIES.has(body.category)) return bad("Datos inválidos");
+      const name = body.name.trim();
+      const key = entryKey(name, body.category);
+      if (!state.history[key]) {
+        state.history[key] = { name, category: body.category, count: 0 };
+        trimHistory(state);
+      }
       break;
     }
     case "toggle": {
       const item = state.items.find((i) => i.id === body.id);
       if (!item) return notFound();
       item.done = !item.done;
+      item.doneAt = item.done ? new Date().toISOString() : null;
       break;
     }
     case "remove": {

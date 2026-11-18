@@ -4,6 +4,11 @@
 // Uso (desde compras-react/):
 //   node scripts/generar-imagenes.mjs              -> genera las que faltan
 //   node scripts/generar-imagenes.mjs freezer gaia -> regenera esas
+//   node scripts/generar-imagenes.mjs --sticker    -> solo convierte en sticker
+//                                                     las ya generadas (gratis)
+//
+// Cada imagen se convierte en sticker: se le saca el fondo blanco y se le
+// agrega un borde blanco recortado alrededor del dibujo.
 //
 // Lee GEMINI_API_KEY del .env de la raíz del repo (no se commitea).
 import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
@@ -11,6 +16,7 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 const MODEL = process.env.GEMINI_IMAGE_MODEL || "gemini-3.1-flash-image";
+sharp.cache(false);
 const SIZE = 256;
 const CONCURRENCY = 3;
 
@@ -35,6 +41,7 @@ const SUBJECTS = {
   gaia: "a small stack of baby diapers, a baby lotion bottle and a baby rattle",
   huevos: "an open cardboard egg carton with brown and cream eggs",
   bebidas: "a bottle of mineral water, a juice box with a straw and a soda bottle",
+  mascotas: "a bag of pet food with a paw print, a pet bowl full of kibble and a small bone-shaped toy",
   otros: "a cute pink shopping basket with a heart on the front",
 };
 
@@ -62,9 +69,94 @@ async function generate(key, id) {
   const part = data.candidates?.[0]?.content?.parts?.find((p) => p.inlineData);
   if (!part) throw new Error("la respuesta no trajo imagen");
   const png = Buffer.from(part.inlineData.data, "base64");
-  const webp = await sharp(png).resize(SIZE, SIZE, { fit: "cover" }).webp({ quality: 82 }).toBuffer();
+  const square = await sharp(png).resize(SIZE, SIZE, { fit: "cover" }).png().toBuffer();
+  const webp = await stickerize(square);
   writeFileSync(`${OUT_DIR}${id}.webp`, webp);
   return webp.length;
+}
+
+const OUTLINE = 6; // px de borde blanco (sobre 256)
+const PAD = OUTLINE + 4;
+
+// Saca el fondo blanco (lo que es casi blanco y está conectado con los
+// bordes de la imagen) y agrega un borde blanco suave alrededor del dibujo.
+async function stickerize(input) {
+  const { data, info } = await sharp(input)
+    .resize(SIZE - PAD * 2, SIZE - PAD * 2, { fit: "contain", background: "#ffffff" })
+    .extend({ top: PAD, bottom: PAD, left: PAD, right: PAD, background: "#ffffff" })
+    .flatten({ background: "#ffffff" })
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const { width: w, height: h } = info;
+  const px = (x, y) => (y * w + x) * 4;
+  const whiteness = (i) => Math.min(data[i], data[i + 1], data[i + 2]);
+
+  // 1. Fondo: relleno desde los bordes por los píxeles casi blancos.
+  const bg = new Uint8Array(w * h);
+  const stack = [];
+  for (let x = 0; x < w; x++) stack.push([x, 0], [x, h - 1]);
+  for (let y = 0; y < h; y++) stack.push([0, y], [w - 1, y]);
+  while (stack.length) {
+    const [x, y] = stack.pop();
+    if (x < 0 || y < 0 || x >= w || y >= h || bg[y * w + x]) continue;
+    if (whiteness(px(x, y)) < 232) continue;
+    bg[y * w + x] = 1;
+    stack.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
+  }
+
+  // 2. Distancia de cada píxel de fondo al dibujo (hasta OUTLINE + 1).
+  const R = OUTLINE + 1;
+  const out = Buffer.alloc(w * h * 4);
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = px(x, y);
+      if (!bg[y * w + x]) {
+        data.copy(out, i, i, i + 3);
+        out[i + 3] = 255;
+        continue;
+      }
+      let best = Infinity;
+      for (let dy = -R; dy <= R && best > 0; dy++) {
+        const yy = y + dy;
+        if (yy < 0 || yy >= h) continue;
+        for (let dx = -R; dx <= R; dx++) {
+          const xx = x + dx;
+          if (xx < 0 || xx >= w || bg[yy * w + xx]) continue;
+          const d = Math.hypot(dx, dy);
+          if (d < best) best = d;
+        }
+      }
+      // Borde blanco con canto suave; más lejos, transparente.
+      const a = Math.max(0, Math.min(1, OUTLINE + 0.5 - best));
+      out[i] = out[i + 1] = out[i + 2] = 255;
+      out[i + 3] = Math.round(a * 255);
+    }
+  }
+  return sharp(out, { raw: { width: w, height: h, channels: 4 } }).webp({ quality: 85, alphaQuality: 90 }).toBuffer();
+}
+
+// ¿Ya es sticker? (la esquina es transparente)
+async function isSticker(file) {
+  const { data } = await sharp(readFileSync(file)).ensureAlpha().extract({ left: 0, top: 0, width: 1, height: 1 }).raw().toBuffer({ resolveWithObject: true });
+  return data[3] === 0;
+}
+
+mkdirSync(OUT_DIR, { recursive: true });
+
+if (process.argv[2] === "--sticker") {
+  for (const id of Object.keys(SUBJECTS)) {
+    const file = `${OUT_DIR}${id}.webp`;
+    if (!existsSync(file)) continue;
+    if (await isSticker(file)) {
+      console.log(`· ${id} ya era sticker`);
+      continue;
+    }
+    const webp = await stickerize(readFileSync(file));
+    writeFileSync(file, webp);
+    console.log(`✓ ${id} (${Math.round(webp.length / 1024)} KB)`);
+  }
+  process.exit(0);
 }
 
 const key = loadKey();
@@ -72,7 +164,6 @@ if (!key) {
   console.error("Falta GEMINI_API_KEY en el .env de la raíz del repo.");
   process.exit(1);
 }
-mkdirSync(OUT_DIR, { recursive: true });
 
 const requested = process.argv.slice(2);
 const unknown = requested.filter((id) => !SUBJECTS[id]);

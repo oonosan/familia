@@ -1,6 +1,6 @@
 import { useId, useMemo, useRef, useState } from "react";
-import { CATEGORIES, allEntries, categoryOf, entryKey, normalize } from "./categories";
-import { CategoryArt, CategoryTag } from "./ui";
+import { allEntries, categoryOf, entryKey, normalize } from "./categories";
+import { CategoryPicker, CategoryTag } from "./ui";
 
 const MAX_OPTIONS = 8;
 
@@ -178,28 +178,12 @@ export default function AddForm({ history, pending, busy, onAdd }) {
       </div>
 
       {picking && query && (
-        <div className="picker">
-          <p className="picker-title">
-            ¿En qué sección va <strong>«{name.trim()}»</strong>?
-          </p>
-          <div className="picker-grid">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c.id}
-                className="picker-option"
-                style={{ "--cat": c.color, "--cat-soft": c.soft }}
-                disabled={busy}
-                onClick={() => add(name, c.id)}
-              >
-                <CategoryArt category={c} size="sm" />
-                <span>{c.label}</span>
-              </button>
-            ))}
-          </div>
-          <button className="btn ghost full" onClick={() => setPicking(false)}>
-            Cancelar
-          </button>
-        </div>
+        <CategoryPicker
+          name={name}
+          busy={busy}
+          onPick={(category) => add(name, category)}
+          onCancel={() => setPicking(false)}
+        />
       )}
     </div>
   );

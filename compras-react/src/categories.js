@@ -15,6 +15,7 @@ export const CATEGORIES = [
   { id: "gaia", label: "Gaia", emoji: "🍼", color: "#e07c5a", soft: "#fde6dd" },
   { id: "huevos", label: "Huevos", emoji: "🥚", color: "#c9a019", soft: "#faf1d2" },
   { id: "bebidas", label: "Bebidas", emoji: "🧃", color: "#6a79cf", soft: "#e6e8fa" },
+  { id: "mascotas", label: "Mascotas", emoji: "🐾", color: "#a0703f", soft: "#f5ebdf" },
   { id: "otros", label: "Otros", emoji: "🛒", color: "#7b8580", soft: "#ebeeec" },
 ];
 
@@ -76,6 +77,10 @@ const CATALOG_BY_CATEGORY = {
     "Leche de fórmula", "Colitas para el pelo",
   ],
   huevos: ["Huevos", "Maple de huevos"],
+  mascotas: [
+    "Alimento para perro", "Alimento para gato", "Alimento húmedo", "Piedritas sanitarias", "Snacks para mascotas",
+    "Pipeta antipulgas", "Antiparasitario", "Bolsitas para caca", "Juguete para mascota", "Shampoo para mascotas",
+  ],
   bebidas: ["Agua", "Agua con gas", "Soda", "Gaseosa", "Jugo", "Vino", "Cerveza", "Agua saborizada"],
 };
 
