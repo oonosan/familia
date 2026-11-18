@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { addItem, clearDone, fetchState, forget, removeItem, toggleItem, updateItem } from "./api";
-import { CATEGORIES, categoryById, guessCategory } from "./categories";
+import { CATEGORIES, categoryOf, entryKey } from "./categories";
+import AddForm from "./AddForm";
+import { CategoryArt, CategoryTag } from "./ui";
 
 const POLL_MS = 15000;
 const SUGGESTIONS = 14;
@@ -61,16 +63,16 @@ export default function App() {
     () =>
       CATEGORIES.map((c) => ({
         ...c,
-        items: pending.filter((i) => (categoryById[i.category] ? i.category : "otros") === c.id),
+        items: pending.filter((i) => categoryOf(i.category).id === c.id),
       })).filter((g) => g.items.length > 0),
     [pending]
   );
 
   const suggestions = useMemo(() => {
     if (!state) return [];
-    const onList = new Set(pending.map((i) => i.name.toLowerCase()));
+    const onList = new Set(pending.map((i) => entryKey(i.name, i.category)));
     return Object.values(state.history)
-      .filter((h) => !onList.has(h.name.toLowerCase()))
+      .filter((h) => !onList.has(entryKey(h.name, h.category)))
       .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name))
       .slice(0, SUGGESTIONS);
   }, [state, pending]);
@@ -100,6 +102,7 @@ export default function App() {
 
         <AddForm
           history={state.history}
+          pending={pending}
           busy={busy}
           onAdd={(name, qty, category) => run(() => addItem(name, qty, category))}
         />
@@ -108,27 +111,34 @@ export default function App() {
           <section className="suggestions">
             <h2>Lo de siempre</h2>
             <div className="chips">
-              {suggestions.map((s) => (
-                <span key={s.name} className="chip">
-                  <button
-                    className="chip-add"
-                    disabled={busy}
-                    onClick={() => run(() => addItem(s.name, "", s.category))}
-                    title={`Agregar ${s.name}`}
+              {suggestions.map((s) => {
+                const cat = categoryOf(s.category);
+                return (
+                  <span
+                    key={`${s.category}|${s.name}`}
+                    className="chip"
+                    style={{ "--cat": cat.color, "--cat-soft": cat.soft }}
                   >
-                    + {s.name}
-                  </button>
-                  <button
-                    className="chip-forget"
-                    disabled={busy}
-                    onClick={() => run(() => forget(s.name))}
-                    aria-label={`Sacar ${s.name} de las sugerencias`}
-                    title="Sacar de las sugerencias"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
+                    <button
+                      className="chip-add"
+                      disabled={busy}
+                      onClick={() => run(() => addItem(s.name, "", s.category))}
+                      title={`Agregar ${s.name} (${cat.label})`}
+                    >
+                      <span className="chip-dot" aria-hidden="true" />+ {s.name}
+                    </button>
+                    <button
+                      className="chip-forget"
+                      disabled={busy}
+                      onClick={() => run(() => forget(s.name, s.category))}
+                      aria-label={`Sacar ${s.name} de las sugerencias`}
+                      title="Sacar de las sugerencias"
+                    >
+                      ×
+                    </button>
+                  </span>
+                );
+              })}
             </div>
           </section>
         )}
@@ -139,42 +149,45 @@ export default function App() {
             {done.length > 0 ? "¡Listo! Ya está todo en el changuito." : "La lista está vacía. Anotá lo que haga falta."}
           </div>
         ) : (
-          groups.map((g) => (
-            <section key={g.id} className="card group">
-              <h2>
-                <span aria-hidden="true">{g.emoji}</span> {g.label}
-                <span className="badge">{g.items.length}</span>
-              </h2>
-              <ul className="items">
-                {g.items.map((item) =>
-                  editingId === item.id ? (
-                    <EditRow
-                      key={item.id}
-                      item={item}
-                      busy={busy}
-                      onCancel={() => setEditingId(null)}
-                      onSave={async (name, qty, category) => {
-                        if (await run(() => updateItem(item.id, name, qty, category))) setEditingId(null);
-                      }}
-                    />
-                  ) : (
-                    <ItemRow
-                      key={item.id}
-                      item={item}
-                      busy={busy}
-                      onToggle={() => toggle(item.id)}
-                      onEdit={() => setEditingId(item.id)}
-                      onRemove={() => run(() => removeItem(item.id))}
-                    />
-                  )
-                )}
-              </ul>
-            </section>
-          ))
+          <div className="groups">
+            {groups.map((g) => (
+              <section key={g.id} className="group" style={{ "--cat": g.color, "--cat-soft": g.soft }}>
+                <header className="group-head">
+                  <CategoryArt category={g} />
+                  <h2 className="group-title">{g.label}</h2>
+                  <span className="badge">{g.items.length}</span>
+                </header>
+                <ul className="items">
+                  {g.items.map((item) =>
+                    editingId === item.id ? (
+                      <EditRow
+                        key={item.id}
+                        item={item}
+                        busy={busy}
+                        onCancel={() => setEditingId(null)}
+                        onSave={async (name, qty, category) => {
+                          if (await run(() => updateItem(item.id, name, qty, category))) setEditingId(null);
+                        }}
+                      />
+                    ) : (
+                      <ItemRow
+                        key={item.id}
+                        item={item}
+                        busy={busy}
+                        onToggle={() => toggle(item.id)}
+                        onEdit={() => setEditingId(item.id)}
+                        onRemove={() => run(() => removeItem(item.id))}
+                      />
+                    )
+                  )}
+                </ul>
+              </section>
+            ))}
+          </div>
         )}
 
         {done.length > 0 && (
-          <section className="card group done-group">
+          <section className="card done-group">
             <h2>
               <span aria-hidden="true">✅</span> En el changuito
               <span className="badge">{done.length}</span>
@@ -185,6 +198,7 @@ export default function App() {
                   key={item.id}
                   item={item}
                   busy={busy}
+                  showCategory
                   onToggle={() => toggle(item.id)}
                   onRemove={() => run(() => removeItem(item.id))}
                 />
@@ -218,90 +232,10 @@ function Header({ count }) {
   );
 }
 
-function AddForm({ history, busy, onAdd }) {
-  const [name, setName] = useState("");
-  const [qty, setQty] = useState("");
-  const [category, setCategory] = useState("otros");
-  const [manualCategory, setManualCategory] = useState(false);
-  const inputRef = useRef(null);
-
-  // Mientras no se elija categoría a mano, la adivinamos: primero por el
-  // historial (como se anotó la última vez) y si no, por palabra clave.
-  function changeName(value) {
-    setName(value);
-    if (manualCategory) return;
-    const known = history[value.trim().toLowerCase()];
-    setCategory(known?.category || guessCategory(value) || "otros");
-  }
-
-  async function submit(e) {
-    e.preventDefault();
-    if (!name.trim()) return;
-    if (await onAdd(name.trim(), qty.trim(), category)) {
-      setName("");
-      setQty("");
-      setCategory("otros");
-      setManualCategory(false);
-      inputRef.current?.focus();
-    }
-  }
-
-  const names = Object.values(history).map((h) => h.name);
-
+function ItemRow({ item, busy, showCategory, onToggle, onEdit, onRemove }) {
+  const cat = categoryOf(item.category);
   return (
-    <form className="card add" onSubmit={submit}>
-      <div className="add-row">
-        <input
-          ref={inputRef}
-          className="add-name"
-          value={name}
-          onChange={(e) => changeName(e.target.value)}
-          placeholder="¿Qué hace falta?"
-          aria-label="Producto"
-          maxLength={80}
-          list="history-names"
-          autoComplete="off"
-        />
-        <input
-          className="add-qty"
-          value={qty}
-          onChange={(e) => setQty(e.target.value)}
-          placeholder="Cant."
-          aria-label="Cantidad"
-          maxLength={30}
-        />
-      </div>
-      <datalist id="history-names">
-        {names.map((n) => (
-          <option key={n} value={n} />
-        ))}
-      </datalist>
-      <div className="add-row">
-        <select
-          value={category}
-          onChange={(e) => {
-            setCategory(e.target.value);
-            setManualCategory(true);
-          }}
-          aria-label="Categoría"
-        >
-          {CATEGORIES.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.emoji} {c.label}
-            </option>
-          ))}
-        </select>
-        <button className="btn primary" type="submit" disabled={busy || !name.trim()}>
-          Agregar
-        </button>
-      </div>
-    </form>
-  );
-}
-
-function ItemRow({ item, busy, onToggle, onEdit, onRemove }) {
-  return (
-    <li className={`item ${item.done ? "is-done" : ""}`}>
+    <li className={`item ${item.done ? "is-done" : ""}`} style={{ "--cat": cat.color, "--cat-soft": cat.soft }}>
       <button
         className="check"
         onClick={onToggle}
@@ -314,6 +248,7 @@ function ItemRow({ item, busy, onToggle, onEdit, onRemove }) {
         <span className="item-text">
           <span className="item-name">{item.name}</span>
           {item.qty && <span className="item-qty">{item.qty}</span>}
+          {showCategory && <CategoryTag category={cat} />}
         </span>
       </button>
       {onEdit && (
@@ -331,7 +266,7 @@ function ItemRow({ item, busy, onToggle, onEdit, onRemove }) {
 function EditRow({ item, busy, onSave, onCancel }) {
   const [name, setName] = useState(item.name);
   const [qty, setQty] = useState(item.qty);
-  const [category, setCategory] = useState(item.category);
+  const [category, setCategory] = useState(categoryOf(item.category).id);
 
   return (
     <li className="item editing">

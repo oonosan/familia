@@ -23,4 +23,4 @@ export const updateItem = (id, name, qty, category) => postAction({ action: "upd
 export const toggleItem = (id) => postAction({ action: "toggle", id });
 export const removeItem = (id) => postAction({ action: "remove", id });
 export const clearDone = () => postAction({ action: "clearDone" });
-export const forget = (name) => postAction({ action: "forget", name });
+export const forget = (name, category) => postAction({ action: "forget", name, category });

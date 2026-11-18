@@ -4,19 +4,25 @@
 //
 // Además de la lista guarda un "historial" de lo que se fue anotando
 // (nombre + categoría + cuántas veces), para sugerirlo de nuevo con un toque.
+// Un mismo nombre puede estar en dos categorías (ej. patamuslo de la
+// carnicería y patamuslo del freezer), así que todo se identifica por
+// categoría + nombre.
 import { getStore } from "@netlify/blobs";
 import { randomUUID } from "node:crypto";
 
 const KEY = "state";
 const CATEGORIES = new Set([
-  "verduleria",
-  "almacen",
+  "frutas-verduras",
+  "heladera",
   "carniceria",
-  "lacteos",
-  "panaderia",
+  "freezer",
+  "almacen",
+  "snacks",
   "limpieza",
-  "perfumeria",
-  "bebe",
+  "aseo",
+  "gaia",
+  "huevos",
+  "bebidas",
   "otros",
 ]);
 const MAX_ITEMS = 300;
@@ -48,10 +54,10 @@ export default async (req) => {
         return bad("Datos inválidos");
       }
       const name = body.name.trim();
-      const key = name.toLowerCase();
+      const key = entryKey(name, body.category);
       // Si ya está pendiente en la lista no lo duplicamos: solo actualizamos
       // la cantidad si vino una nueva.
-      const existing = state.items.find((i) => !i.done && i.name.toLowerCase() === key);
+      const existing = state.items.find((i) => !i.done && entryKey(i.name, i.category) === key);
       if (existing) {
         if (body.qty) existing.qty = body.qty.trim();
       } else {
@@ -79,7 +85,7 @@ export default async (req) => {
       item.name = body.name.trim();
       item.qty = body.qty ? body.qty.trim() : "";
       item.category = body.category;
-      const key = item.name.toLowerCase();
+      const key = entryKey(item.name, item.category);
       state.history[key] = { name: item.name, category: item.category, count: state.history[key]?.count || 1 };
       break;
     }
@@ -99,8 +105,8 @@ export default async (req) => {
       break;
     }
     case "forget": {
-      if (!isText(body.name, 80)) return bad("Datos inválidos");
-      delete state.history[body.name.trim().toLowerCase()];
+      if (!isText(body.name, 80) || !CATEGORIES.has(body.category)) return bad("Datos inválidos");
+      delete state.history[entryKey(body.name, body.category)];
       break;
     }
     default:
@@ -110,6 +116,11 @@ export default async (req) => {
   await store.setJSON(KEY, state);
   return json(state);
 };
+
+function entryKey(name, category) {
+  const n = name.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "").trim();
+  return `${category}|${n}`;
+}
 
 function emptyState() {
   return { items: [], history: {} };
