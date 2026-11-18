@@ -21,6 +21,12 @@ de un PIN numérico. Deployado en Netlify y publicado en `home.onokaren.com`.
   (check-in/check-out, horas y pagado) se guardan en Netlify Blobs vía
   `netlify/functions/horas-data.mjs`, un store separado por trabajadora
   (`horas-sil`, `horas-adri`) — nada se guarda en localStorage.
+- `compras-react/` — lista de compras compartida de la casa (`/compras/`):
+  ítems con cantidad y categoría (verdulería, carnicería, almacén, etc.,
+  adivinada por palabra clave o por cómo se anotó la última vez), tildado de
+  lo que ya está en el changuito y sugerencias de "lo de siempre" a partir
+  del historial. Los datos se guardan en Netlify Blobs (store `compras`) vía
+  `netlify/functions/compras-data.mjs`.
 - `scripts/build.mjs` — arma `dist/` copiando `public/` y el build de cada
   app hija a su subcarpeta. Para sumar una app nueva, agregarla a la lista
   `APPS` en ese script (opcionalmente con `env` si la app necesita variables

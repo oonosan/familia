@@ -6,6 +6,7 @@ import { cpSync, rmSync, mkdirSync } from "node:fs";
 
 const APPS = [
   { dir: "cumple-gaia-react", buildDir: "dist", mountAt: "cumple-gaia" },
+  { dir: "compras-react", buildDir: "dist", mountAt: "compras" },
   {
     dir: "horas-react",
     buildDir: "dist",

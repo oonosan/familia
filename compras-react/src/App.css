@@ -1,0 +1,384 @@
+:root {
+  --bg: #eef3ec;
+  --card: #ffffff;
+  --border: #d9e3d5;
+  --text: #24302a;
+  --muted: #65756b;
+  --green: #3a6b52;
+  --green-dark: #2c543f;
+  --green-soft: #e1eee5;
+  --danger: #b02f3a;
+  --danger-soft: #fde4e4;
+  --radius: 16px;
+  --shadow: 0 1px 0 rgba(30, 70, 50, 0.04), 0 8px 22px -16px rgba(30, 70, 50, 0.45);
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Nunito", system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-text-size-adjust: 100%;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.center {
+  text-align: center;
+}
+
+/* ---------- Encabezado ---------- */
+
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: calc(0.75rem + env(safe-area-inset-top)) 1rem 0.75rem;
+  background: var(--green);
+  color: white;
+  box-shadow: 0 4px 14px -8px rgba(0, 0, 0, 0.4);
+}
+
+.top h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  flex: 1;
+}
+
+.back {
+  color: white;
+  text-decoration: none;
+  font-size: 1.8rem;
+  line-height: 1;
+  padding: 0 0.35rem 0.15rem;
+  border-radius: 10px;
+}
+
+.back:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.top-count {
+  font-size: 0.85rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* ---------- Página ---------- */
+
+.page {
+  width: min(560px, 100%);
+  margin: 0 auto;
+  padding: 1rem 1rem calc(2.5rem + env(safe-area-inset-bottom));
+  display: grid;
+  gap: 0.9rem;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 0.9rem 1rem;
+}
+
+.card.error {
+  background: var(--danger-soft);
+  border-color: #f3c3c6;
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.card.error button {
+  margin-left: 0.5rem;
+}
+
+.card.empty {
+  text-align: center;
+  color: var(--muted);
+  padding: 1.6rem 1rem;
+}
+
+.empty-emoji {
+  display: block;
+  font-size: 2.2rem;
+  margin-bottom: 0.4rem;
+}
+
+h2 {
+  font-size: 1rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.badge {
+  margin-left: auto;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--green-dark);
+  background: var(--green-soft);
+  border-radius: 999px;
+  padding: 0.05rem 0.55rem;
+}
+
+/* ---------- Botones e inputs ---------- */
+
+.btn {
+  border: 1px solid transparent;
+  border-radius: 12px;
+  padding: 0.6rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.btn.primary {
+  background: var(--green);
+  color: white;
+}
+
+.btn.primary:not(:disabled):hover {
+  background: var(--green-dark);
+}
+
+.btn.ghost {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.btn.ghost:not(:disabled):hover {
+  border-color: var(--green);
+  color: var(--green-dark);
+}
+
+.btn.full {
+  width: 100%;
+  margin-top: 0.6rem;
+}
+
+input,
+select {
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.6rem 0.75rem;
+  background: #fbfdfb;
+  font-size: 1rem;
+}
+
+input:focus,
+select:focus {
+  outline: 2px solid var(--green);
+  outline-offset: -1px;
+  border-color: transparent;
+}
+
+/* ---------- Formulario de alta ---------- */
+
+.add,
+.edit-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.add-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.add-name {
+  flex: 1;
+}
+
+.add-qty {
+  width: 6.5rem;
+}
+
+.add-row select {
+  flex: 1;
+}
+
+/* ---------- Sugerencias ---------- */
+
+.suggestions h2 {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.45rem 0.2rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.chip button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.chip-add {
+  padding: 0.35rem 0.3rem 0.35rem 0.75rem;
+  font-weight: 600;
+}
+
+.chip-forget {
+  padding: 0 0.6rem 0 0.35rem;
+  color: var(--muted);
+}
+
+.chip button:not(:disabled):hover {
+  color: var(--green-dark);
+}
+
+.chip:has(.chip-add:hover) {
+  border-color: var(--green);
+}
+
+/* ---------- Ítems ---------- */
+
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  border-top: 1px solid var(--border);
+}
+
+.item:first-child {
+  border-top: 0;
+}
+
+.item.editing {
+  display: block;
+  padding: 0.6rem 0;
+}
+
+.check {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.1rem;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.box {
+  flex: none;
+  width: 1.45rem;
+  height: 1.45rem;
+  border: 2px solid #a8bcae;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: white;
+}
+
+.check:hover .box {
+  border-color: var(--green);
+}
+
+.item-text {
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.1rem 0.5rem;
+}
+
+.item-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.item-qty {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.icon {
+  flex: none;
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+
+.icon:not(:disabled):hover {
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+
+.item.is-done .box {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+.item.is-done .item-name {
+  text-decoration: line-through;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.done-group {
+  background: #f7faf6;
+}
